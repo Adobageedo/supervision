@@ -5,7 +5,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  @include gradient-bg;
+  background: #fafbfc;
 }
 
 .form-content {
@@ -17,8 +17,9 @@
 mat-card {
   max-width: 900px;
   margin: 0 auto;
-  border-radius: $border-radius-xl;
-  box-shadow: $shadow-xl;
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid #e1e4e8;
 }
 
 form {
@@ -26,19 +27,26 @@ form {
 }
 
 .form-section {
-  @include section-card;
+  margin-bottom: $spacing-xxl;
+  padding: $spacing-xl;
+  background: #f6f8fa;
+  border-radius: $border-radius-md;
+  border-left: 3px solid #0969da;
 
   h3 {
     display: flex;
     align-items: center;
     gap: $spacing-md;
     margin: 0 0 20px 0;
-    color: $primary-color;
-    font-size: 20px;
-    font-weight: 500;
+    color: #24292f;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 
     mat-icon {
-      color: $primary-color;
+      color: #0969da;
+      font-size: 20px;
     }
   }
 }
@@ -66,7 +74,11 @@ mat-slide-toggle {
 }
 
 .conditional-section {
-  @include conditional-section;
+  margin-top: 20px;
+  padding: 20px;
+  background: $white;
+  border-radius: $border-radius-md;
+  border: 1px solid #d0d7de;
 }
 
 .form-actions {
@@ -75,10 +87,13 @@ mat-slide-toggle {
   gap: $spacing-md;
   margin-top: $spacing-xxl;
   padding-top: $spacing-xl;
-  border-top: 2px solid $gray-200;
+  border-top: 1px solid #d0d7de;
 
   button {
     min-width: 120px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
   }
 }
 

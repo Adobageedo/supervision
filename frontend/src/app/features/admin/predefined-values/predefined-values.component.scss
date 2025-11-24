@@ -4,7 +4,7 @@
 .admin-container {
   height: 100vh;
   @include flex-column;
-  @include gradient-bg;
+  background: #fafbfc;
 }
 
 .admin-content {
@@ -32,55 +32,59 @@
 }
 
 .value-card {
-  border-radius: $border-radius-lg;
-  transition: transform $transition-normal, box-shadow $transition-normal;
+  border-radius: $border-radius-md;
+  border: 1px solid #d0d7de;
+  transition: border-color $transition-normal, box-shadow $transition-normal;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-lg;
+    border-color: #0969da;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
 
   mat-card-header {
-    @include gradient-bg;
-    color: $white;
+    background: #f6f8fa;
+    color: #24292f;
     padding: $spacing-lg;
-    border-radius: $border-radius-lg $border-radius-lg 0 0;
+    border-radius: 0;
     margin: -16px -16px 16px -16px;
+    border-bottom: 1px solid #d0d7de;
   }
 
   mat-card-title {
-    color: $white;
-    font-size: 18px;
-    font-weight: 500;
+    color: #24292f;
+    font-size: 16px;
+    font-weight: 600;
   }
 
   .inactive-chip {
-    background: rgba(255, 255, 255, 0.3);
-    color: $white;
-    font-size: 12px;
+    background: #f6f8fa;
+    color: #57606a;
+    font-size: 11px;
+    border: 1px solid #d0d7de;
   }
 
   .description {
-    color: $gray-600;
+    color: #57606a;
     font-size: 14px;
     margin: $spacing-sm 0;
   }
 
   .equipment-count,
   .parent-info {
-    color: $primary-color;
+    color: #0969da;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     margin: $spacing-sm 0 0 0;
   }
 
   mat-card-actions {
     @include flex-between;
     padding: $spacing-sm $spacing-lg;
-    border-top: 1px solid $gray-200;
+    border-top: 1px solid #d0d7de;
     margin: $spacing-lg (-$spacing-lg) (-$spacing-lg) (-$spacing-lg);
     gap: $spacing-sm;
     justify-content: flex-end;
+    background: #f6f8fa;
   }
 }
 
