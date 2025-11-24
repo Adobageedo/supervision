@@ -1,0 +1,85 @@
+@use 'variables' as *;
+
+// Flexbox mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Card mixin
+@mixin card($padding: $spacing-xl) {
+  background: $white;
+  border-radius: $border-radius-lg;
+  padding: $padding;
+  box-shadow: $shadow-md;
+}
+
+// Hover effect
+@mixin hover-lift {
+  transition: transform $transition-normal, box-shadow $transition-normal;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+// Gradient background
+@mixin gradient-bg {
+  background: $primary-gradient;
+}
+
+// Full width form field
+@mixin full-width-field {
+  width: 100%;
+  margin-bottom: $spacing-lg;
+}
+
+// Responsive breakpoints
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == 'xs' {
+    @media (max-width: $breakpoint-xs) { @content; }
+  }
+  @else if $breakpoint == 'sm' {
+    @media (max-width: $breakpoint-sm) { @content; }
+  }
+  @else if $breakpoint == 'md' {
+    @media (max-width: $breakpoint-md) { @content; }
+  }
+  @else if $breakpoint == 'lg' {
+    @media (max-width: $breakpoint-lg) { @content; }
+  }
+  @else if $breakpoint == 'xl' {
+    @media (max-width: $breakpoint-xl) { @content; }
+  }
+}
+
+// Section with colored border
+@mixin section-card($border-color: $primary-color) {
+  margin-bottom: $spacing-xxl;
+  padding: $spacing-xl;
+  background: $gray-50;
+  border-radius: $border-radius-lg;
+  border-left: 4px solid $border-color;
+}
+
+// Conditional section (dashed border)
+@mixin conditional-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: $white;
+  border-radius: $border-radius-md;
+  border: 2px dashed $gray-200;
+}

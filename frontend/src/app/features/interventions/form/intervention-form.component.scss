@@ -1,0 +1,91 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.form-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  @include gradient-bg;
+}
+
+.form-content {
+  flex: 1;
+  padding: $spacing-xl;
+  overflow-y: auto;
+}
+
+mat-card {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-xl;
+}
+
+form {
+  padding: $spacing-sm;
+}
+
+.form-section {
+  @include section-card;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    margin: 0 0 20px 0;
+    color: $primary-color;
+    font-size: 20px;
+    font-weight: 500;
+
+    mat-icon {
+      color: $primary-color;
+    }
+  }
+}
+
+.full-width {
+  @include full-width-field;
+}
+
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  margin-bottom: 20px;
+}
+
+mat-slide-toggle {
+  margin-bottom: $spacing-lg;
+}
+
+.conditional-section {
+  @include conditional-section;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  margin-top: $spacing-xxl;
+  padding-top: $spacing-xl;
+  border-top: 2px solid $gray-200;
+
+  button {
+    min-width: 120px;
+  }
+}
+
+mat-form-field {
+  font-size: 14px;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  margin-top: 4px;
+}

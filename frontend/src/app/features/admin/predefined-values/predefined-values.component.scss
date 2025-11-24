@@ -1,0 +1,94 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.admin-container {
+  height: 100vh;
+  @include flex-column;
+  @include gradient-bg;
+}
+
+.admin-content {
+  flex: 1;
+  padding: $spacing-xl;
+  overflow-y: auto;
+}
+
+.tab-content {
+  padding: $spacing-xl;
+}
+
+.tab-icon {
+  margin-right: $spacing-sm;
+}
+
+.add-button {
+  margin-bottom: $spacing-xl;
+}
+
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.value-card {
+  border-radius: $border-radius-lg;
+  transition: transform $transition-normal, box-shadow $transition-normal;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+
+  mat-card-header {
+    @include gradient-bg;
+    color: $white;
+    padding: $spacing-lg;
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+    margin: -16px -16px 16px -16px;
+  }
+
+  mat-card-title {
+    color: $white;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .inactive-chip {
+    background: rgba(255, 255, 255, 0.3);
+    color: $white;
+    font-size: 12px;
+  }
+
+  .description {
+    color: $gray-600;
+    font-size: 14px;
+    margin: $spacing-sm 0;
+  }
+
+  .equipment-count,
+  .parent-info {
+    color: $primary-color;
+    font-weight: 500;
+    font-size: 14px;
+    margin: $spacing-sm 0 0 0;
+  }
+
+  mat-card-actions {
+    @include flex-between;
+    padding: $spacing-sm $spacing-lg;
+    border-top: 1px solid $gray-200;
+    margin: $spacing-lg (-$spacing-lg) (-$spacing-lg) (-$spacing-lg);
+    gap: $spacing-sm;
+    justify-content: flex-end;
+  }
+}
+
+.empty-message {
+  text-align: center;
+  color: $gray-400;
+  font-size: 16px;
+  padding: 40px;
+  background: $white;
+  border-radius: $border-radius-md;
+}

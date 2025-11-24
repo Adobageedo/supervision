@@ -1,0 +1,187 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
+import { PredefinedService } from '../../../core/services/predefined.service';
+import { PredefinedValue, PredefinedType, PredefinedValuesMap } from '../../../core/models/predefined.model';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { ValueDialogComponent } from './value-dialog.component';
+
+@Component({
+  selector: 'app-predefined-values',
+  standalone: true,
+  imports: [CommonModule, MaterialModule],
+  template: `
+    <div class="admin-container">
+      <mat-toolbar>
+        <button mat-icon-button (click)="router.navigate(['/dashboard'])">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <span>Gestion des Valeurs Prédéfinies</span>
+      </mat-toolbar>
+
+      <div class="admin-content">
+        <mat-tab-group>
+          <mat-tab label="Centrales">
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button">
+                <mat-icon>add</mat-icon>
+                Ajouter
+              </button>
+              
+              @if (values[predefinedType.CENTRALE]) {
+                <mat-list>
+                  @for (value of values[predefinedType.CENTRALE]; track value.id) {
+                    <mat-list-item>
+                      <span matListItemTitle>{{ value.value }}</span>
+                      @if (value.description) {
+                        <span matListItemLine>{{ value.description }}</span>
+                      }
+                      <button mat-icon-button matListItemMeta>
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                  }
+                </mat-list>
+              }
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Équipements">
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button">
+                <mat-icon>add</mat-icon>
+                Ajouter
+              </button>
+              
+              @if (values[predefinedType.EQUIPEMENT]) {
+                <mat-list>
+                  @for (value of values[predefinedType.EQUIPEMENT]; track value.id) {
+                    <mat-list-item>
+                      <span matListItemTitle>{{ value.value }}</span>
+                      @if (value.description) {
+                        <span matListItemLine>{{ value.description }}</span>
+                      }
+                      <button mat-icon-button matListItemMeta>
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                  }
+                </mat-list>
+              }
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Types d'événements">
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button">
+                <mat-icon>add</mat-icon>
+                Ajouter
+              </button>
+              
+              @if (values[predefinedType.TYPE_EVENEMENT]) {
+                <mat-list>
+                  @for (value of values[predefinedType.TYPE_EVENEMENT]; track value.id) {
+                    <mat-list-item>
+                      <span matListItemTitle>{{ value.value }}</span>
+                      @if (value.description) {
+                        <span matListItemLine>{{ value.description }}</span>
+                      }
+                      <button mat-icon-button matListItemMeta>
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                  }
+                </mat-list>
+              }
+            </div>
+          </mat-tab>
+
+          <mat-tab label="Types de dysfonctionnements">
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button">
+                <mat-icon>add</mat-icon>
+                Ajouter
+              </button>
+              
+              @if (values[predefinedType.TYPE_DYSFONCTIONNEMENT]) {
+                <mat-list>
+                  @for (value of values[predefinedType.TYPE_DYSFONCTIONNEMENT]; track value.id) {
+                    <mat-list-item>
+                      <span matListItemTitle>{{ value.value }}</span>
+                      @if (value.description) {
+                        <span matListItemLine>{{ value.description }}</span>
+                      }
+                      <button mat-icon-button matListItemMeta>
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                  }
+                </mat-list>
+              }
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .admin-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: #f5f5f5;
+    }
+
+    .admin-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .tab-content {
+      padding: 24px;
+    }
+
+    .add-button {
+      margin-bottom: 16px;
+    }
+
+    mat-list {
+      background: white;
+      border-radius: 8px;
+    }
+  `]
+})
+export class PredefinedValuesComponent implements OnInit {
+  values: any = {};
+  predefinedType = PredefinedType;
+
+  constructor(
+    private predefinedService: PredefinedService,
+    private snackBar: MatSnackBar,
+    public router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.loadValues();
+  }
+
+  loadValues(): void {
+    this.predefinedService.getAllValues().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.values = response.data.values;
+        }
+      },
+      error: (error) => {
+        this.snackBar.open('Erreur de chargement', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+}

@@ -1,0 +1,70 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: supervision-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: supervision_maintenance
+      POSTGRES_USER: supervision_user
+      POSTGRES_PASSWORD: supervision_password
+    ports:
+      - "4201:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - supervision-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: supervision-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: supervision_maintenance
+      DB_USER: supervision_user
+      DB_PASSWORD: supervision_password
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 4202
+    ports:
+      - "4202:4202"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - supervision-network
+    command: npm run dev
+
+  # Frontend Angular
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: supervision-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - supervision-network
+    command: npm start
+
+volumes:
+  postgres-data:
+
+networks:
+  supervision-network:
+    driver: bridge

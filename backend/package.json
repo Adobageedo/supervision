@@ -1,0 +1,73 @@
+{
+  "name": "supervision-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour la gestion des interventions de maintenance",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/config/database.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/config/database.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/config/database.ts",
+    "seed": "ts-node src/database/seeds/index.ts",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "maintenance",
+    "interventions",
+    "energy",
+    "nodejs",
+    "express",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "typeorm": "^0.3.17",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.13",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "express-validator": "^7.0.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0",
+    "express-rate-limit": "^7.1.5",
+    "compression": "^1.7.4",
+    "csv-stringify": "^6.4.5",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/cors": "^2.8.17",
+    "@types/compression": "^1.7.5",
+    "@types/jest": "^29.5.11",
+    "@types/supertest": "^6.0.2",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "supertest": "^6.3.3",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

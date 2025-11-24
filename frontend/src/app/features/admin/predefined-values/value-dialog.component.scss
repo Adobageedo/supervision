@@ -1,0 +1,15 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+.full-width {
+  @include full-width-field;
+}
+
+mat-dialog-content {
+  min-width: 400px;
+  padding: 20px;
+}
+
+mat-slide-toggle {
+  margin-top: $spacing-lg;
+}
