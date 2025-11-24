@@ -1,3 +1,6 @@
+// Import shared variables and mixins FIRST
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
 
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
@@ -34,10 +37,6 @@ body {
   margin: 0;
 }
 /* You can add global styles to this file, and also import other style files */
-
-// Import shared variables and mixins
-@use 'styles/variables' as *;
-@use 'styles/mixins' as *;
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

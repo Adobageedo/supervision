@@ -1,0 +1,260 @@
+<div class="list-container">
+  <!-- Toolbar -->
+  <mat-toolbar color="primary" class="toolbar">
+    <button mat-icon-button (click)="router.navigate(['/dashboard'])">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>📋 Liste des Interventions</span>
+    <span class="spacer"></span>
+    <span class="total-count">{{ dataSource.data.length }} intervention(s)</span>
+  </mat-toolbar>
+
+  <div class="content">
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="left-actions">
+        @if (canWrite) {
+          <button mat-raised-button color="primary" (click)="router.navigate(['/interventions/new'])" class="action-btn">
+            <mat-icon>add</mat-icon>
+            Nouvelle Intervention
+          </button>
+        }
+        
+        <button mat-raised-button color="accent" (click)="exportToCsv()" class="action-btn">
+          <mat-icon>download</mat-icon>
+          Exporter CSV
+        </button>
+
+        @if (activeFiltersCount > 0) {
+          <button mat-stroked-button (click)="clearAllFilters()" class="action-btn">
+            <mat-icon>filter_alt_off</mat-icon>
+            Effacer les filtres ({{ activeFiltersCount }})
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <mat-card class="table-card">
+      <mat-card-content>
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="dataSource" matSort class="interventions-table">
+            
+            <!-- Titre Column -->
+            <ng-container matColumnDef="titre">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <div class="header-content">
+                  <span>Titre</span>
+                  <button mat-icon-button [matMenuTriggerFor]="titreMenu" class="filter-btn" (click)="$event.stopPropagation()">
+                    <mat-icon [class.filtered]="isColumnFiltered('titre')">filter_list</mat-icon>
+                  </button>
+                </div>
+                <mat-menu #titreMenu="matMenu" class="filter-menu">
+                  <div class="filter-content" (click)="$event.stopPropagation()">
+                    @if (getColumnFilter('titre')) {
+                      <mat-selection-list [formControl]="getColumnFilter('titre')!.control">
+                        @for (value of getColumnFilter('titre')?.values; track value) {
+                          <mat-list-option [value]="value">{{ value }}</mat-list-option>
+                        }
+                      </mat-selection-list>
+                    }
+                  </div>
+                </mat-menu>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <strong>{{ row.titre }}</strong>
+              </td>
+            </ng-container>
+
+            <!-- Centrale Column -->
+            <ng-container matColumnDef="centrale">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <div class="header-content">
+                  <span>Centrale</span>
+                  <button mat-icon-button [matMenuTriggerFor]="centraleMenu" class="filter-btn" (click)="$event.stopPropagation()">
+                    <mat-icon [class.filtered]="isColumnFiltered('centrale')">filter_list</mat-icon>
+                  </button>
+                </div>
+                <mat-menu #centraleMenu="matMenu" class="filter-menu">
+                  <div class="filter-content" (click)="$event.stopPropagation()">
+                    @if (getColumnFilter('centrale')) {
+                      <mat-selection-list [formControl]="getColumnFilter('centrale')!.control">
+                        @for (value of getColumnFilter('centrale')?.values; track value) {
+                          <mat-list-option [value]="value">{{ value }}</mat-list-option>
+                        }
+                      </mat-selection-list>
+                    }
+                  </div>
+                </mat-menu>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-chip class="centrale-chip">{{ row.centrale }}</mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Équipement Column -->
+            <ng-container matColumnDef="equipement">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <div class="header-content">
+                  <span>Équipement</span>
+                  <button mat-icon-button [matMenuTriggerFor]="equipementMenu" class="filter-btn" (click)="$event.stopPropagation()">
+                    <mat-icon [class.filtered]="isColumnFiltered('equipement')">filter_list</mat-icon>
+                  </button>
+                </div>
+                <mat-menu #equipementMenu="matMenu" class="filter-menu">
+                  <div class="filter-content" (click)="$event.stopPropagation()">
+                    @if (getColumnFilter('equipement')) {
+                      <mat-selection-list [formControl]="getColumnFilter('equipement')!.control">
+                        @for (value of getColumnFilter('equipement')?.values; track value) {
+                          <mat-list-option [value]="value">{{ value }}</mat-list-option>
+                        }
+                      </mat-selection-list>
+                    }
+                  </div>
+                </mat-menu>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">{{ row.equipement }}</td>
+            </ng-container>
+
+            <!-- Type Événement Column -->
+            <ng-container matColumnDef="typeEvenement">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <div class="header-content">
+                  <span>Type Événement</span>
+                  <button mat-icon-button [matMenuTriggerFor]="typeEvenementMenu" class="filter-btn" (click)="$event.stopPropagation()">
+                    <mat-icon [class.filtered]="isColumnFiltered('typeEvenement')">filter_list</mat-icon>
+                  </button>
+                </div>
+                <mat-menu #typeEvenementMenu="matMenu" class="filter-menu">
+                  <div class="filter-content" (click)="$event.stopPropagation()">
+                    @if (getColumnFilter('typeEvenement')) {
+                      <mat-selection-list [formControl]="getColumnFilter('typeEvenement')!.control">
+                        @for (value of getColumnFilter('typeEvenement')?.values; track value) {
+                          <mat-list-option [value]="value">{{ value }}</mat-list-option>
+                        }
+                      </mat-selection-list>
+                    }
+                  </div>
+                </mat-menu>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.typeEvenement) {
+                  <mat-chip class="type-chip">{{ row.typeEvenement }}</mat-chip>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Type Dysfonctionnement Column -->
+            <ng-container matColumnDef="typeDysfonctionnement">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <div class="header-content">
+                  <span>Type Dysfonctionnement</span>
+                  <button mat-icon-button [matMenuTriggerFor]="typeDysfonctionnementMenu" class="filter-btn" (click)="$event.stopPropagation()">
+                    <mat-icon [class.filtered]="isColumnFiltered('typeDysfonctionnement')">filter_list</mat-icon>
+                  </button>
+                </div>
+                <mat-menu #typeDysfonctionnementMenu="matMenu" class="filter-menu">
+                  <div class="filter-content" (click)="$event.stopPropagation()">
+                    @if (getColumnFilter('typeDysfonctionnement')) {
+                      <mat-selection-list [formControl]="getColumnFilter('typeDysfonctionnement')!.control">
+                        @for (value of getColumnFilter('typeDysfonctionnement')?.values; track value) {
+                          <mat-list-option [value]="value">{{ value }}</mat-list-option>
+                        }
+                      </mat-selection-list>
+                    }
+                  </div>
+                </mat-menu>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.typeDysfonctionnement) {
+                  <mat-chip class="dysfonctionnement-chip">{{ row.typeDysfonctionnement }}</mat-chip>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Date Début Column -->
+            <ng-container matColumnDef="dateDebut">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <span>Date Début</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                {{ row.dateDebut | date:'dd/MM/yyyy HH:mm' }}
+              </td>
+            </ng-container>
+
+            <!-- Date Fin Column -->
+            <ng-container matColumnDef="dateFin">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
+                <span>Date Fin</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.dateFin) {
+                  {{ row.dateFin | date:'dd/MM/yyyy HH:mm' }}
+                } @else {
+                  <span class="no-data">-</span>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Statut Column -->
+            <ng-container matColumnDef="statut">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Statut</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-chip [class]="'status-chip ' + getStatutColor(row)">
+                  {{ getStatutLabel(row) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="header-cell actions-header">
+                <span>Actions</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content actions-cell">
+                <button mat-icon-button [matMenuTriggerFor]="menu" class="action-menu-btn">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="viewDetail(row.id)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>Voir détails</span>
+                  </button>
+                  @if (canWrite) {
+                    <button mat-menu-item (click)="editIntervention(row.id)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Modifier</span>
+                    </button>
+                    <button mat-menu-item (click)="archiveIntervention(row)">
+                      <mat-icon>{{ row.isArchived ? 'unarchive' : 'archive' }}</mat-icon>
+                      <span>{{ row.isArchived ? 'Restaurer' : 'Archiver' }}</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="deleteIntervention(row.id)" class="delete-action">
+                      <mat-icon color="warn">delete</mat-icon>
+                      <span>Supprimer</span>
+                    </button>
+                  }
+                </mat-menu>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+                class="table-row"
+                (click)="viewDetail(row.id)"></tr>
+          </table>
+        </div>
+
+        <mat-paginator 
+          [pageSizeOptions]="[10, 25, 50, 100]" 
+          [pageSize]="25"
+          showFirstLastButtons
+          class="paginator">
+        </mat-paginator>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
