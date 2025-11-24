@@ -9,12 +9,54 @@ export class InterventionController {
 
   createIntervention = asyncHandler(
     async (req: AuthRequest, res: Response, next: NextFunction) => {
-      const { intervenants, ...interventionData } = req.body;
+      const { 
+        intervenants, 
+        titreEvenement, 
+        dateRef,
+        hasIntervention,
+        intervenantEnregistre,
+        dateDebutIntervention,
+        dateFinIntervention,
+        societeIntervenant,
+        nombreIntervenant,
+        hasPerteProduction,
+        hasPerteCommunication,
+        dateDebutIndisponibilite,
+        indisponibiliteTerminee,
+        dateFinIndisponibilite,
+        rapportAttendu,
+        rapportRecu,
+        ...rest 
+      } = req.body;
       const userId = req.user!.id;
+
+      // Map frontend field names to backend entity field names
+      const interventionData = {
+        titre: titreEvenement,
+        dateDebut: dateRef,
+        ...rest,
+      };
+
+      // Map intervention-related fields if intervention was performed
+      const intervenantsData = hasIntervention && intervenantEnregistre ? [{
+        nomComplet: intervenantEnregistre,
+        dateDebut: dateDebutIntervention,
+        dateFin: dateFinIntervention,
+        societe: societeIntervenant,
+        nombreIntervenants: nombreIntervenant,
+      }] : [];
+
+      // Map unavailability dates if there were losses
+      if (hasPerteProduction || hasPerteCommunication) {
+        interventionData.dateIndisponibiliteDebut = dateDebutIndisponibilite;
+        if (indisponibiliteTerminee) {
+          interventionData.dateIndisponibiliteFin = dateFinIndisponibilite;
+        }
+      }
 
       const intervention = await this.interventionService.createIntervention(
         interventionData,
-        intervenants || [],
+        intervenantsData,
         userId
       );
 
@@ -84,13 +126,58 @@ export class InterventionController {
   updateIntervention = asyncHandler(
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const { id } = req.params;
-      const { intervenants, ...interventionData } = req.body;
+      const { 
+        intervenants, 
+        titreEvenement, 
+        dateRef,
+        hasIntervention,
+        intervenantEnregistre,
+        dateDebutIntervention,
+        dateFinIntervention,
+        societeIntervenant,
+        nombreIntervenant,
+        hasPerteProduction,
+        hasPerteCommunication,
+        dateDebutIndisponibilite,
+        indisponibiliteTerminee,
+        dateFinIndisponibilite,
+        rapportAttendu,
+        rapportRecu,
+        ...rest 
+      } = req.body;
       const userId = req.user!.id;
+
+      // Map frontend field names to backend entity field names
+      const interventionData: any = { ...rest };
+      
+      if (titreEvenement !== undefined) {
+        interventionData.titre = titreEvenement;
+      }
+      if (dateRef !== undefined) {
+        interventionData.dateDebut = dateRef;
+      }
+
+      // Map intervention-related fields if intervention was performed
+      const intervenantsData = hasIntervention && intervenantEnregistre ? [{
+        nomComplet: intervenantEnregistre,
+        dateDebut: dateDebutIntervention,
+        dateFin: dateFinIntervention,
+        societe: societeIntervenant,
+        nombreIntervenants: nombreIntervenant,
+      }] : [];
+
+      // Map unavailability dates if there were losses
+      if (hasPerteProduction || hasPerteCommunication) {
+        interventionData.dateIndisponibiliteDebut = dateDebutIndisponibilite;
+        if (indisponibiliteTerminee) {
+          interventionData.dateIndisponibiliteFin = dateFinIndisponibilite;
+        }
+      }
 
       const intervention = await this.interventionService.updateIntervention(
         id,
         interventionData,
-        intervenants,
+        intervenantsData.length > 0 ? intervenantsData : intervenants,
         userId
       );
 

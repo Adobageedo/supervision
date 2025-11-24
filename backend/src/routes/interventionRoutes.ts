@@ -10,14 +10,12 @@ const interventionController = new InterventionController();
 
 // Validation schemas
 const createInterventionValidation = [
-  body('titre').notEmpty().withMessage('Title is required'),
+  body('titreEvenement').notEmpty().withMessage('Title is required'),
   body('centrale').notEmpty().withMessage('Central is required'),
   body('equipement').notEmpty().withMessage('Equipment is required'),
-  body('typeEvenement').notEmpty().withMessage('Event type is required'),
-  body('typeDysfonctionnement')
-    .notEmpty()
-    .withMessage('Malfunction type is required'),
-  body('dateDebut').isISO8601().withMessage('Valid start date is required'),
+  body('typeEvenement').optional(),
+  body('typeDysfonctionnement').optional(),
+  body('dateRef').isISO8601().withMessage('Valid start date is required'),
   body('dateFin').optional().isISO8601().withMessage('Valid end date required'),
   body('dateIndisponibiliteDebut')
     .optional()
