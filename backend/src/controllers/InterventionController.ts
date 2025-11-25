@@ -30,20 +30,46 @@ export class InterventionController {
       } = req.body;
       const userId = req.user!.id;
 
+      // DEBUG: Log incoming data
+      console.log('🔍 [CONTROLLER] Incoming request body:', req.body);
+      console.log('🔍 [CONTROLLER] typeEvenement:', rest.typeEvenement, Array.isArray(rest.typeEvenement));
+      console.log('🔍 [CONTROLLER] typeDysfonctionnement:', rest.typeDysfonctionnement, Array.isArray(rest.typeDysfonctionnement));
+      console.log('🔍 [CONTROLLER] hasIntervention:', hasIntervention);
+      console.log('🔍 [CONTROLLER] hasPerteProduction:', hasPerteProduction);
+      console.log('🔍 [CONTROLLER] hasPerteCommunication:', hasPerteCommunication);
+
+      // Convert arrays to JSON strings BEFORE spreading rest
+      const typeEvenementJson = rest.typeEvenement && Array.isArray(rest.typeEvenement) 
+        ? JSON.stringify(rest.typeEvenement) 
+        : (rest.typeEvenement || '[]');
+      
+      const typeDysfonctionnementJson = rest.typeDysfonctionnement && Array.isArray(rest.typeDysfonctionnement)
+        ? JSON.stringify(rest.typeDysfonctionnement)
+        : (rest.typeDysfonctionnement || '[]');
+
+      console.log('✅ [CONTROLLER] typeEvenementJson:', typeEvenementJson);
+      console.log('✅ [CONTROLLER] typeDysfonctionnementJson:', typeDysfonctionnementJson);
+
       // Map frontend field names to backend entity field names
-      const interventionData = {
+      const interventionData: any = {
         titre: titreEvenement,
         dateDebut: dateRef,
+        hasIntervention: !!hasIntervention,
+        hasPerteProduction: !!hasPerteProduction,
+        hasPerteCommunication: !!hasPerteCommunication,
+        rapportAttendu: !!rapportAttendu,
+        rapportRecu: !!rapportRecu,
         ...rest,
+        typeEvenement: typeEvenementJson,
+        typeDysfonctionnement: typeDysfonctionnementJson,
       };
+
+      console.log('🔍 [CONTROLLER] Final interventionData:', interventionData);
 
       // Map intervention-related fields if intervention was performed
       const intervenantsData = hasIntervention && intervenantEnregistre ? [{
-        nomComplet: intervenantEnregistre,
-        dateDebut: dateDebutIntervention,
-        dateFin: dateFinIntervention,
-        societe: societeIntervenant,
-        nombreIntervenants: nombreIntervenant,
+        nom: intervenantEnregistre,  // Use nom instead of nomComplet
+        entreprise: societeIntervenant,
       }] : [];
 
       // Map unavailability dates if there were losses
@@ -147,8 +173,26 @@ export class InterventionController {
       } = req.body;
       const userId = req.user!.id;
 
+      // DEBUG: Log incoming data
+      console.log('🔍 [CONTROLLER UPDATE] Incoming request body:', req.body);
+      console.log('🔍 [CONTROLLER UPDATE] typeEvenement:', rest.typeEvenement, Array.isArray(rest.typeEvenement));
+      console.log('🔍 [CONTROLLER UPDATE] typeDysfonctionnement:', rest.typeDysfonctionnement, Array.isArray(rest.typeDysfonctionnement));
+
+      // Convert arrays to JSON strings BEFORE spreading rest
+      const typeEvenementJson = rest.typeEvenement && Array.isArray(rest.typeEvenement) 
+        ? JSON.stringify(rest.typeEvenement) 
+        : rest.typeEvenement;
+      
+      const typeDysfonctionnementJson = rest.typeDysfonctionnement && Array.isArray(rest.typeDysfonctionnement)
+        ? JSON.stringify(rest.typeDysfonctionnement)
+        : rest.typeDysfonctionnement;
+
       // Map frontend field names to backend entity field names
-      const interventionData: any = { ...rest };
+      const interventionData: any = { 
+        ...rest,
+        typeEvenement: typeEvenementJson,
+        typeDysfonctionnement: typeDysfonctionnementJson,
+      };
       
       if (titreEvenement !== undefined) {
         interventionData.titre = titreEvenement;
@@ -156,14 +200,30 @@ export class InterventionController {
       if (dateRef !== undefined) {
         interventionData.dateDebut = dateRef;
       }
+      
+      // Update toggle fields with boolean conversion
+      if (hasIntervention !== undefined) {
+        interventionData.hasIntervention = !!hasIntervention;
+      }
+      if (hasPerteProduction !== undefined) {
+        interventionData.hasPerteProduction = !!hasPerteProduction;
+      }
+      if (hasPerteCommunication !== undefined) {
+        interventionData.hasPerteCommunication = !!hasPerteCommunication;
+      }
+      if (rapportAttendu !== undefined) {
+        interventionData.rapportAttendu = !!rapportAttendu;
+      }
+      if (rapportRecu !== undefined) {
+        interventionData.rapportRecu = !!rapportRecu;
+      }
+
+      console.log('✅ [CONTROLLER UPDATE] Final interventionData:', interventionData);
 
       // Map intervention-related fields if intervention was performed
       const intervenantsData = hasIntervention && intervenantEnregistre ? [{
-        nomComplet: intervenantEnregistre,
-        dateDebut: dateDebutIntervention,
-        dateFin: dateFinIntervention,
-        societe: societeIntervenant,
-        nombreIntervenants: nombreIntervenant,
+        nom: intervenantEnregistre,  // Use nom instead of nomComplet
+        entreprise: societeIntervenant,
       }] : [];
 
       // Map unavailability dates if there were losses

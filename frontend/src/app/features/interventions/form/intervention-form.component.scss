@@ -15,7 +15,7 @@
 }
 
 mat-card {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   border-radius: 0;
   box-shadow: none;
@@ -60,6 +60,24 @@ form {
   grid-template-columns: 1fr 1fr;
   gap: $spacing-lg;
   margin-bottom: $spacing-lg;
+}
+
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-lg;
+
+  .column-left,
+  .column-right {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
 }
 
 .toggle-group {

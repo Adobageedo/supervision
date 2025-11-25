@@ -138,9 +138,11 @@
                 </mat-menu>
               </th>
               <td mat-cell *matCellDef="let row" class="cell-content">
-                @if (row.typeEvenement) {
-                  <mat-chip class="type-chip">{{ row.typeEvenement }}</mat-chip>
-                }
+                <div class="chips-container">
+                  @for (type of getTypeEvenementArray(row); track type) {
+                    <mat-chip class="type-chip">{{ type }}</mat-chip>
+                  }
+                </div>
               </td>
             </ng-container>
 
@@ -166,9 +168,11 @@
                 </mat-menu>
               </th>
               <td mat-cell *matCellDef="let row" class="cell-content">
-                @if (row.typeDysfonctionnement) {
-                  <mat-chip class="dysfonctionnement-chip">{{ row.typeDysfonctionnement }}</mat-chip>
-                }
+                <div class="chips-container">
+                  @for (type of getTypeDysfonctionnementArray(row); track type) {
+                    <mat-chip class="dysfonctionnement-chip">{{ type }}</mat-chip>
+                  }
+                </div>
               </td>
             </ng-container>
 
@@ -182,16 +186,178 @@
               </td>
             </ng-container>
 
-            <!-- Date Fin Column -->
-            <ng-container matColumnDef="dateFin">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell">
-                <span>Date Fin</span>
+            <!-- Has Intervention Column -->
+            <ng-container matColumnDef="hasIntervention">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Intervention</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-icon class="toggle-icon" [style.color]="row.hasIntervention ? '#0969da' : '#d0d7de'">
+                  {{ row.hasIntervention ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Intervenant Enregistré Column -->
+            <ng-container matColumnDef="intervenantEnregistre">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Intervenant</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                {{ getIntervenantName(row) }}
+              </td>
+            </ng-container>
+
+            <!-- Date Début Intervention Column -->
+            <ng-container matColumnDef="dateDebutIntervention">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Début Interv.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.intervenants && row.intervenants.length > 0 && row.dateDebut) {
+                  {{ row.dateDebut | date:'dd/MM/yyyy HH:mm' }}
+                }
+              </td>
+            </ng-container>
+
+            <!-- Date Fin Intervention Column -->
+            <ng-container matColumnDef="dateFinIntervention">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Fin Interv.</span>
               </th>
               <td mat-cell *matCellDef="let row" class="cell-content">
                 @if (row.dateFin) {
                   {{ row.dateFin | date:'dd/MM/yyyy HH:mm' }}
-                } @else {
-                  <span class="no-data">-</span>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Société Intervenant Column -->
+            <ng-container matColumnDef="societeIntervenant">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Société</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                {{ getIntervenantCompany(row) }}
+              </td>
+            </ng-container>
+
+            <!-- Nombre Intervenant Column -->
+            <ng-container matColumnDef="nombreIntervenant">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Nb Interv.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (getIntervenantCount(row)) {
+                  {{ getIntervenantCount(row) }}
+                }
+              </td>
+            </ng-container>
+
+            <!-- Has Perte Production Column -->
+            <ng-container matColumnDef="hasPerteProduction">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Perte Prod.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-icon class="toggle-icon" [style.color]="row.hasPerteProduction ? '#cf222e' : '#d0d7de'">
+                  {{ row.hasPerteProduction ? 'warning' : 'check_circle' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Has Perte Communication Column -->
+            <ng-container matColumnDef="hasPerteCommunication">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Perte Comm.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-icon class="toggle-icon" [style.color]="row.hasPerteCommunication ? '#cf222e' : '#d0d7de'">
+                  {{ row.hasPerteCommunication ? 'warning' : 'check_circle' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Date Début Indisponibilité Column -->
+            <ng-container matColumnDef="dateDebutIndisponibilite">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Début Indispo</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.dateIndisponibiliteDebut) {
+                  {{ row.dateIndisponibiliteDebut | date:'dd/MM/yyyy HH:mm' }}
+                }
+              </td>
+            </ng-container>
+
+            <!-- Date Fin Indisponibilité Column -->
+            <ng-container matColumnDef="dateFinIndisponibilite">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Fin Indispo</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.dateIndisponibiliteFin) {
+                  {{ row.dateIndisponibiliteFin | date:'dd/MM/yyyy HH:mm' }}
+                }
+              </td>
+            </ng-container>
+
+            <!-- Perte Production Column -->
+            <ng-container matColumnDef="perteProduction">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Perte Prod.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.perteProduction) {
+                  <mat-icon class="loss-icon">check_circle</mat-icon>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Perte Communication Column -->
+            <ng-container matColumnDef="perteCommunication">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Perte Comm.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.perteCommunication) {
+                  <mat-icon class="loss-icon">check_circle</mat-icon>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Rapport Attendu Column -->
+            <ng-container matColumnDef="rapportAttendu">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Rapport Att.</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-icon class="toggle-icon" [style.color]="row.rapportAttendu ? '#0969da' : '#d0d7de'">
+                  {{ row.rapportAttendu ? 'description' : 'cancel' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Rapport Reçu Column -->
+            <ng-container matColumnDef="rapportRecu">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Rapport Reçu</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                <mat-icon class="toggle-icon" [style.color]="row.rapportRecu ? '#1a7f37' : '#d0d7de'">
+                  {{ row.rapportRecu ? 'check_box' : 'check_box_outline_blank' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Commentaires Column -->
+            <ng-container matColumnDef="commentaires">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <span>Commentaires</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="cell-content">
+                @if (row.commentaires) {
+                  <span class="comment-preview">{{ row.commentaires.substring(0, 30) }}{{ row.commentaires.length > 30 ? '...' : '' }}</span>
                 }
               </td>
             </ng-container>

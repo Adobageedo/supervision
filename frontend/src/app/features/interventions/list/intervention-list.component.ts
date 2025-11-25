@@ -29,7 +29,29 @@ interface ColumnFilter {
   styleUrls: ['./intervention-list.component.scss']
 })
 export class InterventionListComponent implements OnInit {
-  displayedColumns = ['titre', 'centrale', 'equipement', 'typeEvenement', 'typeDysfonctionnement', 'dateDebut', 'dateFin', 'statut', 'actions'];
+  displayedColumns = [
+    'titre', 
+    'dateDebut', 
+    'centrale', 
+    'equipement', 
+    'typeEvenement', 
+    'typeDysfonctionnement',
+    'hasIntervention',
+    'intervenantEnregistre',
+    'dateDebutIntervention',
+    'dateFinIntervention',
+    'societeIntervenant',
+    'nombreIntervenant',
+    'hasPerteProduction',
+    'hasPerteCommunication',
+    'dateDebutIndisponibilite',
+    'dateFinIndisponibilite',
+    'rapportAttendu',
+    'rapportRecu',
+    'commentaires',
+    'statut', 
+    'actions'
+  ];
   dataSource: MatTableDataSource<Intervention> = new MatTableDataSource();
   allInterventions: Intervention[] = [];
   
@@ -73,6 +95,17 @@ export class InterventionListComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.allInterventions = response.data.interventions;
+          
+          // DEBUG: Log first intervention to check data structure
+          if (this.allInterventions.length > 0) {
+            console.log('🔍 [LIST] First intervention:', this.allInterventions[0]);
+            console.log('🔍 [LIST] typeEvenement:', this.allInterventions[0].typeEvenement, typeof this.allInterventions[0].typeEvenement);
+            console.log('🔍 [LIST] typeDysfonctionnement:', this.allInterventions[0].typeDysfonctionnement, typeof this.allInterventions[0].typeDysfonctionnement);
+            console.log('🔍 [LIST] hasIntervention:', this.allInterventions[0].hasIntervention);
+            console.log('🔍 [LIST] hasPerteProduction:', this.allInterventions[0].hasPerteProduction);
+            console.log('🔍 [LIST] hasPerteCommunication:', this.allInterventions[0].hasPerteCommunication);
+          }
+          
           this.dataSource.data = this.allInterventions;
           
           // Setup table features
@@ -209,13 +242,71 @@ export class InterventionListComponent implements OnInit {
 
   getStatutLabel(intervention: Intervention): string {
     if (intervention.isArchived) return 'Archivée';
-    if (intervention.dateFin) return 'Terminée';
+    // Closed if either intervention finished OR indisponibilité finished
+    if (intervention.dateFin || intervention.dateIndisponibiliteFin) return 'Terminée';
     return 'En cours';
   }
 
   getStatutColor(intervention: Intervention): string {
     if (intervention.isArchived) return 'archived';
-    if (intervention.dateFin) return 'completed';
+    // Closed if either intervention finished OR indisponibilité finished
+    if (intervention.dateFin || intervention.dateIndisponibiliteFin) return 'completed';
     return 'ongoing';
+  }
+  
+  getIntervenantName(intervention: Intervention): string {
+    return intervention.intervenants && intervention.intervenants.length > 0 
+      ? intervention.intervenants[0].nom 
+      : '';
+  }
+  
+  getIntervenantCompany(intervention: Intervention): string {
+    return intervention.intervenants && intervention.intervenants.length > 0 
+      ? (intervention.intervenants[0].entreprise || '') 
+      : '';
+  }
+  
+  getIntervenantCount(intervention: Intervention): number | null {
+    return intervention.intervenants && intervention.intervenants.length > 0 
+      ? intervention.intervenants.length 
+      : null;
+  }
+  
+  getTypeEvenementArray(intervention: Intervention): string[] {
+    if (!intervention.typeEvenement) return [];
+    
+    if (Array.isArray(intervention.typeEvenement)) {
+      return intervention.typeEvenement;
+    }
+    
+    if (typeof intervention.typeEvenement === 'string') {
+      try {
+        const parsed = JSON.parse(intervention.typeEvenement);
+        return Array.isArray(parsed) ? parsed : [intervention.typeEvenement];
+      } catch (e) {
+        return intervention.typeEvenement ? [intervention.typeEvenement] : [];
+      }
+    }
+    
+    return [];
+  }
+  
+  getTypeDysfonctionnementArray(intervention: Intervention): string[] {
+    if (!intervention.typeDysfonctionnement) return [];
+    
+    if (Array.isArray(intervention.typeDysfonctionnement)) {
+      return intervention.typeDysfonctionnement;
+    }
+    
+    if (typeof intervention.typeDysfonctionnement === 'string') {
+      try {
+        const parsed = JSON.parse(intervention.typeDysfonctionnement);
+        return Array.isArray(parsed) ? parsed : [intervention.typeDysfonctionnement];
+      } catch (e) {
+        return intervention.typeDysfonctionnement ? [intervention.typeDysfonctionnement] : [];
+      }
+    }
+    
+    return [];
   }
 }

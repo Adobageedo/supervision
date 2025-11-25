@@ -5,8 +5,8 @@ export interface Intervention {
   titre: string;
   centrale: string;
   equipement: string;
-  typeEvenement: string;
-  typeDysfonctionnement: string;
+  typeEvenement: string | string[]; // Can be string or array
+  typeDysfonctionnement: string | string[]; // Can be string or array
   dateDebut: Date;
   dateFin?: Date;
   dateIndisponibiliteDebut?: Date;
@@ -14,6 +14,11 @@ export interface Intervention {
   commentaires?: string;
   perteProduction?: number;
   perteCommunication?: number;
+  hasIntervention?: boolean;
+  hasPerteProduction?: boolean;
+  hasPerteCommunication?: boolean;
+  rapportAttendu?: boolean;
+  rapportRecu?: boolean;
   isArchived: boolean;
   archivedAt?: Date;
   intervenants: Intervenant[];

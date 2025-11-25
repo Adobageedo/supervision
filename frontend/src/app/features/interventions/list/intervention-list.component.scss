@@ -246,6 +246,39 @@ mat-chip {
   }
 }
 
+// Loss icon styling
+.loss-icon {
+  color: #0969da;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+// Comment preview styling
+.comment-preview {
+  font-size: 13px;
+  color: #57606a;
+  font-style: italic;
+}
+
+// Chips container styling
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+// Toggle icon styling
+.toggle-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 // Responsive
 @include respond-to('md') {
   .action-bar {

@@ -50,12 +50,20 @@ import { Intervention } from '../../../core/models/intervention.model';
 
                 <div class="info-item">
                   <strong>Type d'événement:</strong>
-                  <mat-chip color="primary">{{ intervention.typeEvenement }}</mat-chip>
+                  <div class="chips-container">
+                    @for (type of getTypeEvenementArray(); track type) {
+                      <mat-chip color="primary">{{ type }}</mat-chip>
+                    }
+                  </div>
                 </div>
 
                 <div class="info-item">
                   <strong>Type de dysfonctionnement:</strong>
-                  <span>{{ intervention.typeDysfonctionnement }}</span>
+                  <div class="chips-container">
+                    @for (type of getTypeDysfonctionnementArray(); track type) {
+                      <mat-chip color="accent">{{ type }}</mat-chip>
+                    }
+                  </div>
                 </div>
 
                 <div class="info-item">
@@ -84,19 +92,46 @@ import { Intervention } from '../../../core/models/intervention.model';
                   </div>
                 }
 
-                @if (intervention.perteProduction) {
-                  <div class="info-item">
-                    <strong>Perte de production:</strong>
-                    <span>{{ intervention.perteProduction }} kWh</span>
-                  </div>
-                }
+                <div class="info-item">
+                  <strong>Intervention réalisée:</strong>
+                  <mat-chip [color]="intervention.hasIntervention ? 'primary' : ''">
+                    {{ intervention.hasIntervention ? 'Oui' : 'Non' }}
+                  </mat-chip>
+                </div>
 
-                @if (intervention.perteCommunication) {
-                  <div class="info-item">
-                    <strong>Perte de communication:</strong>
-                    <span>{{ intervention.perteCommunication }} heures</span>
-                  </div>
-                }
+                <div class="info-item">
+                  <strong>Perte de production:</strong>
+                  <mat-chip [color]="intervention.hasPerteProduction ? 'warn' : ''">
+                    {{ intervention.hasPerteProduction ? 'Oui' : 'Non' }}
+                  </mat-chip>
+                  @if (intervention.perteProduction) {
+                    <span class="detail-text">{{ intervention.perteProduction }} kWh</span>
+                  }
+                </div>
+
+                <div class="info-item">
+                  <strong>Perte de communication:</strong>
+                  <mat-chip [color]="intervention.hasPerteCommunication ? 'warn' : ''">
+                    {{ intervention.hasPerteCommunication ? 'Oui' : 'Non' }}
+                  </mat-chip>
+                  @if (intervention.perteCommunication) {
+                    <span class="detail-text">{{ intervention.perteCommunication }} heures</span>
+                  }
+                </div>
+
+                <div class="info-item">
+                  <strong>Rapport attendu:</strong>
+                  <mat-chip [color]="intervention.rapportAttendu ? 'primary' : ''">
+                    {{ intervention.rapportAttendu ? 'Oui' : 'Non' }}
+                  </mat-chip>
+                </div>
+
+                <div class="info-item">
+                  <strong>Rapport reçu:</strong>
+                  <mat-chip [color]="intervention.rapportRecu ? 'primary' : ''">
+                    {{ intervention.rapportRecu ? 'Oui' : 'Non' }}
+                  </mat-chip>
+                </div>
 
                 <div class="info-item">
                   <strong>Statut:</strong>
@@ -204,6 +239,19 @@ import { Intervention } from '../../../core/models/intervention.model';
     .my-3 {
       margin: 24px 0;
     }
+
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .detail-text {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+    }
   `]
 })
 export class InterventionDetailComponent implements OnInit {
@@ -230,13 +278,71 @@ export class InterventionDetailComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.intervention = response.data.intervention;
+          
+          // DEBUG: Log the raw intervention data
+          console.log('🔍 [DETAIL] Raw intervention data:', this.intervention);
+          console.log('🔍 [DETAIL] typeEvenement:', this.intervention.typeEvenement, typeof this.intervention.typeEvenement);
+          console.log('🔍 [DETAIL] typeDysfonctionnement:', this.intervention.typeDysfonctionnement, typeof this.intervention.typeDysfonctionnement);
+          console.log('🔍 [DETAIL] hasIntervention:', this.intervention.hasIntervention);
+          console.log('🔍 [DETAIL] hasPerteProduction:', this.intervention.hasPerteProduction);
+          console.log('🔍 [DETAIL] hasPerteCommunication:', this.intervention.hasPerteCommunication);
+          console.log('🔍 [DETAIL] rapportAttendu:', this.intervention.rapportAttendu);
+          console.log('🔍 [DETAIL] rapportRecu:', this.intervention.rapportRecu);
         }
       },
       error: (error) => {
-        console.error('Error loading intervention:', error);
+        console.error('❌ [DETAIL] Error loading intervention:', error);
         this.goBack();
       }
     });
+  }
+  
+  getTypeEvenementArray(): string[] {
+    if (!this.intervention?.typeEvenement) return [];
+    
+    console.log('🔍 [DETAIL] getTypeEvenementArray called with:', this.intervention.typeEvenement);
+    
+    if (Array.isArray(this.intervention.typeEvenement)) {
+      console.log('✅ [DETAIL] Already an array:', this.intervention.typeEvenement);
+      return this.intervention.typeEvenement;
+    }
+    
+    if (typeof this.intervention.typeEvenement === 'string') {
+      try {
+        const parsed = JSON.parse(this.intervention.typeEvenement);
+        console.log('✅ [DETAIL] Parsed JSON:', parsed);
+        return Array.isArray(parsed) ? parsed : [this.intervention.typeEvenement];
+      } catch (e) {
+        console.log('⚠️ [DETAIL] Parse failed, using as single value:', this.intervention.typeEvenement);
+        return this.intervention.typeEvenement ? [this.intervention.typeEvenement] : [];
+      }
+    }
+    
+    return [];
+  }
+  
+  getTypeDysfonctionnementArray(): string[] {
+    if (!this.intervention?.typeDysfonctionnement) return [];
+    
+    console.log('🔍 [DETAIL] getTypeDysfonctionnementArray called with:', this.intervention.typeDysfonctionnement);
+    
+    if (Array.isArray(this.intervention.typeDysfonctionnement)) {
+      console.log('✅ [DETAIL] Already an array:', this.intervention.typeDysfonctionnement);
+      return this.intervention.typeDysfonctionnement;
+    }
+    
+    if (typeof this.intervention.typeDysfonctionnement === 'string') {
+      try {
+        const parsed = JSON.parse(this.intervention.typeDysfonctionnement);
+        console.log('✅ [DETAIL] Parsed JSON:', parsed);
+        return Array.isArray(parsed) ? parsed : [this.intervention.typeDysfonctionnement];
+      } catch (e) {
+        console.log('⚠️ [DETAIL] Parse failed, using as single value:', this.intervention.typeDysfonctionnement);
+        return this.intervention.typeDysfonctionnement ? [this.intervention.typeDysfonctionnement] : [];
+      }
+    }
+    
+    return [];
   }
 
   editIntervention(): void {

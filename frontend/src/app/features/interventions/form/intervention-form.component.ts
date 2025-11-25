@@ -20,7 +20,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         <button mat-icon-button (click)="goBack()">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        <span>{{ isEditMode ? 'Modifier' : 'Nouvelle' }} Intervention</span>
+        <span>
+          {{ isEditMode ? 'Modifier' : 'Nouvelle' }} Intervention
+          @if (isEditMode && originalTitle) {
+            <span class="original-title"> - {{ originalTitle }}</span>
+          }
+        </span>
       </mat-toolbar>
 
       <div class="form-content">
@@ -49,53 +54,61 @@ import { MatSnackBar } from '@angular/material/snack-bar';
                 </mat-form-field>
 
                 @if (predefinedValues) {
-                  <mat-form-field class="full-width" appearance="outline">
-                    <mat-label>Centrale *</mat-label>
-                    <mat-select formControlName="centrale" required>
-                      @for (value of predefinedValues[predefinedType.CENTRALE]; track value.id) {
-                        <mat-option [value]="value.value">{{ value.value }}</mat-option>
-                      }
-                    </mat-select>
-                    @if (interventionForm.get('centrale')?.hasError('required')) {
-                      <mat-error>La centrale est obligatoire</mat-error>
-                    }
-                  </mat-form-field>
+                  <div class="two-column-layout">
+                    <div class="column-left">
+                      <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Centrale *</mat-label>
+                        <mat-select formControlName="centrale" required>
+                          @for (value of predefinedValues[predefinedType.CENTRALE]; track value.id) {
+                            <mat-option [value]="value.value">{{ value.value }}</mat-option>
+                          }
+                        </mat-select>
+                        @if (interventionForm.get('centrale')?.hasError('required')) {
+                          <mat-error>La centrale est obligatoire</mat-error>
+                        }
+                      </mat-form-field>
 
-                  <mat-form-field class="full-width" appearance="outline">
-                    <mat-label>Équipement *</mat-label>
-                    <mat-select formControlName="equipement" required [disabled]="!interventionForm.get('centrale')?.value">
-                      @if (filteredEquipements.length === 0 && interventionForm.get('centrale')?.value) {
-                        <mat-option disabled>Aucun équipement pour cette centrale</mat-option>
-                      }
-                      @for (value of filteredEquipements; track value.id) {
-                        <mat-option [value]="value.value">{{ value.value }}</mat-option>
-                      }
-                    </mat-select>
-                    @if (interventionForm.get('equipement')?.hasError('required')) {
-                      <mat-error>L'équipement est obligatoire</mat-error>
-                    }
-                    @if (!interventionForm.get('centrale')?.value) {
-                      <mat-hint>Sélectionnez d'abord une centrale</mat-hint>
-                    }
-                  </mat-form-field>
+                      <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Type Événement</mat-label>
+                        <mat-select formControlName="typeEvenement" multiple>
+                          @for (value of predefinedValues[predefinedType.TYPE_EVENEMENT]; track value.id) {
+                            <mat-option [value]="value.value">{{ value.value }}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-hint>Sélection multiple possible</mat-hint>
+                      </mat-form-field>
+                    </div>
 
-                  <mat-form-field class="full-width" appearance="outline">
-                    <mat-label>Type Événement</mat-label>
-                    <mat-select formControlName="typeEvenement">
-                      @for (value of predefinedValues[predefinedType.TYPE_EVENEMENT]; track value.id) {
-                        <mat-option [value]="value.value">{{ value.value }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
+                    <div class="column-right">
+                      <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Équipement *</mat-label>
+                        <mat-select formControlName="equipement" required [disabled]="!interventionForm.get('centrale')?.value">
+                          @if (filteredEquipements.length === 0 && interventionForm.get('centrale')?.value) {
+                            <mat-option disabled>Aucun équipement pour cette centrale</mat-option>
+                          }
+                          @for (value of filteredEquipements; track value.id) {
+                            <mat-option [value]="value.value">{{ value.value }}</mat-option>
+                          }
+                        </mat-select>
+                        @if (interventionForm.get('equipement')?.hasError('required')) {
+                          <mat-error>L'équipement est obligatoire</mat-error>
+                        }
+                        @if (!interventionForm.get('centrale')?.value) {
+                          <mat-hint>Sélectionnez d'abord une centrale</mat-hint>
+                        }
+                      </mat-form-field>
 
-                  <mat-form-field class="full-width" appearance="outline">
-                    <mat-label>Type Dysfonctionnement</mat-label>
-                    <mat-select formControlName="typeDysfonctionnement">
-                      @for (value of predefinedValues[predefinedType.TYPE_DYSFONCTIONNEMENT]; track value.id) {
-                        <mat-option [value]="value.value">{{ value.value }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
+                      <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Type Dysfonctionnement</mat-label>
+                        <mat-select formControlName="typeDysfonctionnement" multiple>
+                          @for (value of predefinedValues[predefinedType.TYPE_DYSFONCTIONNEMENT]; track value.id) {
+                            <mat-option [value]="value.value">{{ value.value }}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-hint>Sélection multiple possible</mat-hint>
+                      </mat-form-field>
+                    </div>
+                  </div>
                 }
               </div>
 
@@ -114,31 +127,65 @@ import { MatSnackBar } from '@angular/material/snack-bar';
                       <input matInput formControlName="intervenantEnregistre">
                     </mat-form-field>
 
-                    <div class="date-row">
-                      <mat-form-field appearance="outline">
-                        <mat-label>Date Début Intervention *</mat-label>
-                        <input matInput [matDatepicker]="pickerDebutInter" formControlName="dateDebutIntervention">
-                        <mat-datepicker-toggle matSuffix [for]="pickerDebutInter"></mat-datepicker-toggle>
-                        <mat-datepicker #pickerDebutInter></mat-datepicker>
-                      </mat-form-field>
+                    <div class="two-column-layout">
+                      <div class="column-left">
+                        <mat-form-field class="full-width" appearance="outline">
+                          <mat-label>Date Début Intervention *</mat-label>
+                          <input matInput [matDatepicker]="pickerDebutInter" formControlName="dateDebutIntervention">
+                          <mat-datepicker-toggle matSuffix [for]="pickerDebutInter"></mat-datepicker-toggle>
+                          <mat-datepicker #pickerDebutInter></mat-datepicker>
+                        </mat-form-field>
+                      </div>
 
-                      <mat-form-field appearance="outline">
-                        <mat-label>Date Fin Intervention *</mat-label>
-                        <input matInput [matDatepicker]="pickerFinInter" formControlName="dateFinIntervention">
-                        <mat-datepicker-toggle matSuffix [for]="pickerFinInter"></mat-datepicker-toggle>
-                        <mat-datepicker #pickerFinInter></mat-datepicker>
-                      </mat-form-field>
+                      <div class="column-right">
+                        <mat-form-field class="full-width" appearance="outline">
+                          <mat-label>Heure Début *</mat-label>
+                          <input matInput type="time" formControlName="heureDebutIntervention">
+                          <mat-icon matSuffix>schedule</mat-icon>
+                        </mat-form-field>
+                      </div>
                     </div>
 
-                    <mat-form-field class="full-width" appearance="outline">
-                      <mat-label>Société Intervenant *</mat-label>
-                      <input matInput formControlName="societeIntervenant">
-                    </mat-form-field>
+                    <mat-slide-toggle formControlName="interventionTerminee" color="primary">
+                      Intervention Terminée ?
+                    </mat-slide-toggle>
 
-                    <mat-form-field class="full-width" appearance="outline">
-                      <mat-label>Nombre d'Intervenants *</mat-label>
-                      <input matInput type="number" formControlName="nombreIntervenant" min="1">
-                    </mat-form-field>
+                    @if (interventionForm.get('interventionTerminee')?.value) {
+                      <div class="two-column-layout">
+                        <div class="column-left">
+                          <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Date Fin Intervention *</mat-label>
+                            <input matInput [matDatepicker]="pickerFinInter" formControlName="dateFinIntervention">
+                            <mat-datepicker-toggle matSuffix [for]="pickerFinInter"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerFinInter></mat-datepicker>
+                          </mat-form-field>
+                        </div>
+
+                        <div class="column-right">
+                          <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Heure Fin *</mat-label>
+                            <input matInput type="time" formControlName="heureFinIntervention">
+                            <mat-icon matSuffix>schedule</mat-icon>
+                          </mat-form-field>
+                        </div>
+                      </div>
+                    }
+
+                    <div class="two-column-layout">
+                      <div class="column-left">
+                        <mat-form-field class="full-width" appearance="outline">
+                          <mat-label>Société Intervenant</mat-label>
+                          <input matInput formControlName="societeIntervenant">
+                        </mat-form-field>
+                      </div>
+
+                      <div class="column-right">
+                        <mat-form-field class="full-width" appearance="outline">
+                          <mat-label>Nombre d'Intervenants</mat-label>
+                          <input matInput type="number" formControlName="nombreIntervenant" min="1">
+                        </mat-form-field>
+                      </div>
+                    </div>
                   </div>
                 }
               </div>
@@ -159,24 +206,48 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
                 @if (interventionForm.get('hasPerteProduction')?.value || interventionForm.get('hasPerteCommunication')?.value) {
                   <div class="conditional-section">
-                    <mat-form-field class="full-width" appearance="outline">
-                      <mat-label>Date Début Indisponibilité *</mat-label>
-                      <input matInput [matDatepicker]="pickerDebutIndispo" formControlName="dateDebutIndisponibilite">
-                      <mat-datepicker-toggle matSuffix [for]="pickerDebutIndispo"></mat-datepicker-toggle>
-                      <mat-datepicker #pickerDebutIndispo></mat-datepicker>
-                    </mat-form-field>
+                    <div class="two-column-layout">
+                      <div class="column-left">
+                        <mat-form-field class="full-width" appearance="outline">
+                          <mat-label>Date Début Indisponibilité *</mat-label>
+                          <input matInput [matDatepicker]="pickerDebutIndispo" formControlName="dateDebutIndisponibilite">
+                          <mat-datepicker-toggle matSuffix [for]="pickerDebutIndispo"></mat-datepicker-toggle>
+                          <mat-datepicker #pickerDebutIndispo></mat-datepicker>
+                        </mat-form-field>
+                      </div>
+
+                      <div class="column-right">
+                        <mat-form-field class="full-width" appearance="outline">
+                          <mat-label>Heure Début *</mat-label>
+                          <input matInput type="time" formControlName="heureDebutIndisponibilite">
+                          <mat-icon matSuffix>schedule</mat-icon>
+                        </mat-form-field>
+                      </div>
+                    </div>
 
                     <mat-slide-toggle formControlName="indisponibiliteTerminee" color="primary">
                       Indisponibilité Terminée ?
                     </mat-slide-toggle>
 
                     @if (interventionForm.get('indisponibiliteTerminee')?.value) {
-                      <mat-form-field class="full-width" appearance="outline">
-                        <mat-label>Date Fin Indisponibilité *</mat-label>
-                        <input matInput [matDatepicker]="pickerFinIndispo" formControlName="dateFinIndisponibilite">
-                        <mat-datepicker-toggle matSuffix [for]="pickerFinIndispo"></mat-datepicker-toggle>
-                        <mat-datepicker #pickerFinIndispo></mat-datepicker>
-                      </mat-form-field>
+                      <div class="two-column-layout">
+                        <div class="column-left">
+                          <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Date Fin Indisponibilité *</mat-label>
+                            <input matInput [matDatepicker]="pickerFinIndispo" formControlName="dateFinIndisponibilite">
+                            <mat-datepicker-toggle matSuffix [for]="pickerFinIndispo"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerFinIndispo></mat-datepicker>
+                          </mat-form-field>
+                        </div>
+
+                        <div class="column-right">
+                          <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Heure Fin *</mat-label>
+                            <input matInput type="time" formControlName="heureFinIndisponibilite">
+                            <mat-icon matSuffix>schedule</mat-icon>
+                          </mat-form-field>
+                        </div>
+                      </div>
                     }
                   </div>
                 }
@@ -324,12 +395,19 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     ::ng-deep .mat-mdc-form-field-subscript-wrapper {
       margin-top: 4px;
     }
+
+    .original-title {
+      font-size: 14px;
+      font-weight: normal;
+      opacity: 0.9;
+    }
   `]
 })
 export class InterventionFormComponent implements OnInit {
   interventionForm: FormGroup;
   isEditMode = false;
   interventionId?: string;
+  originalTitle = '';
   predefinedValues: PredefinedValuesMap | null = null;
   filteredEquipements: PredefinedValue[] = [];
   selectedCentraleId: string | null = null;
@@ -350,14 +428,17 @@ export class InterventionFormComponent implements OnInit {
       dateRef: [today, Validators.required],
       centrale: ['', Validators.required],
       equipement: ['', Validators.required],
-      typeEvenement: [''],
-      typeDysfonctionnement: [''],
+      typeEvenement: [[]],  // Array for multiple selection
+      typeDysfonctionnement: [[]],  // Array for multiple selection
       
       // Toggle Intervention
       hasIntervention: [false],
       intervenantEnregistre: [''],
       dateDebutIntervention: [''],
+      heureDebutIntervention: [''],
+      interventionTerminee: [false],
       dateFinIntervention: [''],
+      heureFinIntervention: [''],
       societeIntervenant: [''],
       nombreIntervenant: [''],
       
@@ -365,8 +446,10 @@ export class InterventionFormComponent implements OnInit {
       hasPerteProduction: [false],
       hasPerteCommunication: [false],
       dateDebutIndisponibilite: [''],
+      heureDebutIndisponibilite: [''],
       indisponibiliteTerminee: [false],
       dateFinIndisponibilite: [''],
+      heureFinIndisponibilite: [''],
       
       // Toggle Rapport
       rapportAttendu: [false],
@@ -417,17 +500,62 @@ export class InterventionFormComponent implements OnInit {
   setupConditionalValidators(): void {
     // Watch hasIntervention toggle
     this.interventionForm.get('hasIntervention')?.valueChanges.subscribe(hasIntervention => {
-      const fields = ['intervenantEnregistre', 'dateDebutIntervention', 'dateFinIntervention', 'societeIntervenant', 'nombreIntervenant'];
-      fields.forEach(field => {
+      const requiredFields = ['intervenantEnregistre', 'dateDebutIntervention', 'heureDebutIntervention'];
+      const optionalFields = ['societeIntervenant', 'nombreIntervenant'];
+      
+      requiredFields.forEach(field => {
         const control = this.interventionForm.get(field);
         if (hasIntervention) {
           control?.setValidators([Validators.required]);
+          // Set default dates from dateRef when toggle is activated
+          if (field === 'dateDebutIntervention' && !control?.value) {
+            control?.setValue(this.interventionForm.get('dateRef')?.value);
+          }
+          // Set default time to current time
+          if (field === 'heureDebutIntervention' && !control?.value) {
+            const now = new Date();
+            control?.setValue(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+          }
         } else {
           control?.clearValidators();
           control?.setValue('');
         }
         control?.updateValueAndValidity();
       });
+      
+      // Clear optional fields when intervention is disabled
+      if (!hasIntervention) {
+        optionalFields.forEach(field => {
+          this.interventionForm.get(field)?.setValue('');
+        });
+        this.interventionForm.get('interventionTerminee')?.setValue(false);
+      }
+    });
+    
+    // Watch interventionTerminee toggle
+    this.interventionForm.get('interventionTerminee')?.valueChanges.subscribe(terminee => {
+      const dateControl = this.interventionForm.get('dateFinIntervention');
+      const heureControl = this.interventionForm.get('heureFinIntervention');
+      if (terminee) {
+        dateControl?.setValidators([Validators.required]);
+        heureControl?.setValidators([Validators.required]);
+        // Set default date from dateRef
+        if (!dateControl?.value) {
+          dateControl?.setValue(this.interventionForm.get('dateRef')?.value);
+        }
+        // Set default time to current time
+        if (!heureControl?.value) {
+          const now = new Date();
+          heureControl?.setValue(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+        }
+      } else {
+        dateControl?.clearValidators();
+        dateControl?.setValue('');
+        heureControl?.clearValidators();
+        heureControl?.setValue('');
+      }
+      dateControl?.updateValueAndValidity();
+      heureControl?.updateValueAndValidity();
     });
 
     // Watch perte toggles
@@ -436,14 +564,28 @@ export class InterventionFormComponent implements OnInit {
     
     // Watch indisponibiliteTerminee toggle
     this.interventionForm.get('indisponibiliteTerminee')?.valueChanges.subscribe(terminee => {
-      const control = this.interventionForm.get('dateFinIndisponibilite');
+      const dateControl = this.interventionForm.get('dateFinIndisponibilite');
+      const heureControl = this.interventionForm.get('heureFinIndisponibilite');
       if (terminee) {
-        control?.setValidators([Validators.required]);
+        dateControl?.setValidators([Validators.required]);
+        heureControl?.setValidators([Validators.required]);
+        // Set default date from dateRef
+        if (!dateControl?.value) {
+          dateControl?.setValue(this.interventionForm.get('dateRef')?.value);
+        }
+        // Set default time to current time
+        if (!heureControl?.value) {
+          const now = new Date();
+          heureControl?.setValue(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+        }
       } else {
-        control?.clearValidators();
-        control?.setValue('');
+        dateControl?.clearValidators();
+        dateControl?.setValue('');
+        heureControl?.clearValidators();
+        heureControl?.setValue('');
       }
-      control?.updateValueAndValidity();
+      dateControl?.updateValueAndValidity();
+      heureControl?.updateValueAndValidity();
     });
     
     // Watch rapportAttendu toggle
@@ -461,15 +603,30 @@ export class InterventionFormComponent implements OnInit {
     const hasAnyPerte = hasPerteProduction || hasPerteCommunication;
     
     const dateDebutControl = this.interventionForm.get('dateDebutIndisponibilite');
+    const heureDebutControl = this.interventionForm.get('heureDebutIndisponibilite');
     if (hasAnyPerte) {
       dateDebutControl?.setValidators([Validators.required]);
+      heureDebutControl?.setValidators([Validators.required]);
+      // Set default date from dateRef when perte toggle is activated
+      if (!dateDebutControl?.value) {
+        dateDebutControl?.setValue(this.interventionForm.get('dateRef')?.value);
+      }
+      // Set default time to current time
+      if (!heureDebutControl?.value) {
+        const now = new Date();
+        heureDebutControl?.setValue(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+      }
     } else {
       dateDebutControl?.clearValidators();
       dateDebutControl?.setValue('');
+      heureDebutControl?.clearValidators();
+      heureDebutControl?.setValue('');
       this.interventionForm.get('indisponibiliteTerminee')?.setValue(false);
       this.interventionForm.get('dateFinIndisponibilite')?.setValue('');
+      this.interventionForm.get('heureFinIndisponibilite')?.setValue('');
     }
     dateDebutControl?.updateValueAndValidity();
+    heureDebutControl?.updateValueAndValidity();
   }
 
   ngOnInit(): void {
@@ -510,7 +667,40 @@ export class InterventionFormComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           const intervention = response.data.intervention;
-          this.interventionForm.patchValue(intervention);
+          
+          // Store original title for display
+          this.originalTitle = intervention.titre;
+          
+          // DEBUG: Log raw data
+          console.log('🔍 [FORM] Raw intervention data:', intervention);
+          console.log('🔍 [FORM] typeEvenement:', intervention.typeEvenement, typeof intervention.typeEvenement);
+          console.log('🔍 [FORM] typeDysfonctionnement:', intervention.typeDysfonctionnement, typeof intervention.typeDysfonctionnement);
+          
+          // Parse JSON strings for type fields
+          const formData: any = { ...intervention };
+          
+          if (typeof intervention.typeEvenement === 'string') {
+            try {
+              formData.typeEvenement = JSON.parse(intervention.typeEvenement);
+              console.log('✅ [FORM] Parsed typeEvenement:', formData.typeEvenement);
+            } catch (e) {
+              console.log('⚠️ [FORM] Failed to parse typeEvenement, using as array:', e);
+              formData.typeEvenement = intervention.typeEvenement ? [intervention.typeEvenement] : [];
+            }
+          }
+          
+          if (typeof intervention.typeDysfonctionnement === 'string') {
+            try {
+              formData.typeDysfonctionnement = JSON.parse(intervention.typeDysfonctionnement);
+              console.log('✅ [FORM] Parsed typeDysfonctionnement:', formData.typeDysfonctionnement);
+            } catch (e) {
+              console.log('⚠️ [FORM] Failed to parse typeDysfonctionnement, using as array:', e);
+              formData.typeDysfonctionnement = intervention.typeDysfonctionnement ? [intervention.typeDysfonctionnement] : [];
+            }
+          }
+          
+          console.log('🔍 [FORM] Final formData:', formData);
+          this.interventionForm.patchValue(formData);
           
           // Load intervenants
           if (intervention.intervenants) {
@@ -539,7 +729,42 @@ export class InterventionFormComponent implements OnInit {
   onSubmit(): void {
     if (this.interventionForm.valid) {
       this.loading = true;
-      const data = this.interventionForm.value;
+      const formData = this.interventionForm.value;
+      
+      // Combine date and time fields for intervention
+      const data = { ...formData };
+      if (formData.dateDebutIntervention && formData.heureDebutIntervention) {
+        const dateDebut = new Date(formData.dateDebutIntervention);
+        const [hours, minutes] = formData.heureDebutIntervention.split(':');
+        dateDebut.setHours(parseInt(hours), parseInt(minutes));
+        data.dateDebutIntervention = dateDebut.toISOString();
+      }
+      if (formData.dateFinIntervention && formData.heureFinIntervention) {
+        const dateFin = new Date(formData.dateFinIntervention);
+        const [hours, minutes] = formData.heureFinIntervention.split(':');
+        dateFin.setHours(parseInt(hours), parseInt(minutes));
+        data.dateFinIntervention = dateFin.toISOString();
+      }
+      
+      // Combine date and time fields for indisponibilite
+      if (formData.dateDebutIndisponibilite && formData.heureDebutIndisponibilite) {
+        const dateDebut = new Date(formData.dateDebutIndisponibilite);
+        const [hours, minutes] = formData.heureDebutIndisponibilite.split(':');
+        dateDebut.setHours(parseInt(hours), parseInt(minutes));
+        data.dateDebutIndisponibilite = dateDebut.toISOString();
+      }
+      if (formData.dateFinIndisponibilite && formData.heureFinIndisponibilite) {
+        const dateFin = new Date(formData.dateFinIndisponibilite);
+        const [hours, minutes] = formData.heureFinIndisponibilite.split(':');
+        dateFin.setHours(parseInt(hours), parseInt(minutes));
+        data.dateFinIndisponibilite = dateFin.toISOString();
+      }
+      
+      // Remove time fields from data as they're now combined
+      delete data.heureDebutIntervention;
+      delete data.heureFinIntervention;
+      delete data.heureDebutIndisponibilite;
+      delete data.heureFinIndisponibilite;
 
       const operation = this.isEditMode && this.interventionId
         ? this.interventionService.updateIntervention(this.interventionId, data)

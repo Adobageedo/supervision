@@ -29,11 +29,11 @@ export class Intervention {
   @Index()
   equipement!: string;
 
-  @Column({ length: 100 })
+  @Column({ type: 'text', default: '[]' })
   @Index()
   typeEvenement!: string;
 
-  @Column({ length: 150 })
+  @Column({ type: 'text', default: '[]' })
   @Index()
   typeDysfonctionnement!: string;
 
@@ -58,6 +58,21 @@ export class Intervention {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   perteCommunication?: number;
+
+  @Column({ default: false })
+  hasIntervention!: boolean;
+
+  @Column({ default: false })
+  hasPerteProduction!: boolean;
+
+  @Column({ default: false })
+  hasPerteCommunication!: boolean;
+
+  @Column({ default: false })
+  rapportAttendu!: boolean;
+
+  @Column({ default: false })
+  rapportRecu!: boolean;
 
   @Column({ default: false })
   isArchived!: boolean;
