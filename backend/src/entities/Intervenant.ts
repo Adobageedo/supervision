@@ -5,40 +5,62 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  UpdateDateColumn,
+  Index,
 } from 'typeorm';
-import { Intervention } from './Intervention';
+import { Company } from './Company';
 
 @Entity('intervenants')
 export class Intervenant {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ length: 100 })
-  nom!: string;
+  @Column({ length: 255 })
+  @Index()
+  name!: string;
 
-  @Column({ length: 100, nullable: true })
-  prenom?: string;
+  @Column({ length: 255 })
+  surname!: string;
 
   @Column({ length: 50, nullable: true })
+  phone?: string;
+
+  @Column({ length: 255, nullable: true })
+  email?: string;
+
+  @Column({ length: 100, nullable: true, default: 'France' })
+  country?: string;
+
+  @ManyToOne(() => Company, (company) => company.intervenants, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'companyId' })
+  company?: Company;
+
+  @Column({ nullable: true })
+  @Index()
+  companyId?: string;
+
+  @Column({ length: 100, nullable: true, comment: 'Type of intervenant: Technicien, Ingénieur, etc.' })
   type?: string;
 
-  @Column({ length: 100, nullable: true })
-  entreprise?: string;
-
-  @ManyToOne(() => Intervention, (intervention) => intervention.intervenants, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'interventionId' })
-  intervention!: Intervention;
-
-  @Column()
-  interventionId!: string;
+  @Column({ default: true })
+  isActive!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;
 
-  // Virtual property pour obtenir le nom complet
-  get nomComplet(): string {
-    return this.prenom ? `${this.prenom} ${this.nom}` : this.nom;
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  // Virtual property for full name
+  get fullName(): string {
+    return `${this.surname} ${this.name}`;
+  }
+
+  // Virtual property for display name (surname first, common in French)
+  get displayName(): string {
+    return `${this.name} ${this.surname}`;
   }
 }

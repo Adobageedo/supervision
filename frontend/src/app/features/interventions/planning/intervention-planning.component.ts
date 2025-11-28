@@ -4,8 +4,7 @@ import { MaterialModule } from '../../../shared/material.module';
 import { InterventionService } from '../../../core/services/intervention.service';
 import { Intervention } from '../../../core/models/intervention.model';
 import { Router } from '@angular/router';
-import { FormControl } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -26,7 +25,7 @@ interface FilterColumn {
 @Component({
   selector: 'app-intervention-planning',
   standalone: true,
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule],
+  imports: [CommonModule, MaterialModule, FormsModule, ReactiveFormsModule],
   templateUrl: './intervention-planning.component.html',
   styleUrls: ['./intervention-planning.component.scss']
 })
@@ -58,6 +57,14 @@ export class InterventionPlanningComponent implements OnInit {
     { key: 'intervenants', label: 'Intervenants', enabled: false },
     { key: 'statut', label: 'Statut', enabled: true },
   ];
+  
+  // Filters
+  selectedCentrales: string[] = [];
+  selectedEquipements: string[] = [];
+  filteredCentrales: string[] = [];
+  filteredEquipements: string[] = [];
+  availableCentrales: string[] = [];
+  availableEquipements: string[] = [];
   
   // Predefined colors
   private colors = [
@@ -134,16 +141,16 @@ export class InterventionPlanningComponent implements OnInit {
   updateCalendarEvents(): void {
     this.calendarEvents = this.interventions
       .filter(intervention => {
-        const startDate = new Date(intervention.dateDebut);
-        const endDate = intervention.dateFin ? new Date(intervention.dateFin) : startDate;
+        const startDate = new Date(intervention.debutInter || intervention.dateRef || new Date());
+        const endDate = intervention.finInter ? new Date(intervention.finInter) : startDate;
         
         // Check if intervention overlaps with current view
         return startDate <= this.endDate && endDate >= this.startDate;
       })
       .map((intervention, index) => ({
         intervention,
-        startDate: new Date(intervention.dateDebut),
-        endDate: intervention.dateFin ? new Date(intervention.dateFin) : new Date(intervention.dateDebut),
+        startDate: new Date(intervention.debutInter || intervention.dateRef || new Date()),
+        endDate: intervention.finInter ? new Date(intervention.finInter) : new Date(intervention.debutInter || intervention.dateRef || new Date()),
         color: this.getEventColor(intervention),
         position: index
       }));
@@ -310,9 +317,9 @@ export class InterventionPlanningComponent implements OnInit {
       case 'equipement':
         return intervention.equipement;
       case 'typeEvenement':
-        return this.parseTypeArray(intervention.typeEvenement);
+        return this.parseTypeArray(intervention.typeEvenement || '');
       case 'intervenants':
-        return intervention.intervenants?.map(i => i.nom).join(', ') || '-';
+        return intervention.intervenantEnregistre || '-';
       case 'statut':
         return this.getStatutLabel(intervention);
       default:
@@ -337,7 +344,15 @@ export class InterventionPlanningComponent implements OnInit {
 
   getStatutLabel(intervention: Intervention): string {
     if (intervention.isArchived) return 'Archivée';
-    if (intervention.dateFin || intervention.dateIndisponibiliteFin) return 'Terminée';
+    if (intervention.finInter || intervention.dateIndisponibiliteFin) return 'Terminée';
     return 'En cours';
+  }
+
+  onCentraleSelectionChange(): void {
+    this.updateCalendarEvents();
+  }
+
+  onEquipementSelectionChange(): void {
+    this.updateCalendarEvents();
   }
 }

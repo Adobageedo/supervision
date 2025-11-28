@@ -2,274 +2,146 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MaterialModule } from '../../../shared/material.module';
+import { FormsModule } from '@angular/forms';
 import { PredefinedService } from '../../../core/services/predefined.service';
-import { PredefinedValue, PredefinedType, PredefinedValuesMap } from '../../../core/models/predefined.model';
+import { IntervenantService } from '../../../core/services/intervenant.service';
+import { CompanyService } from '../../../core/services/company.service';
+import { PredefinedValue, PredefinedType } from '../../../core/models/predefined.model';
+import { Intervenant } from '../../../core/models/intervenant.model';
+import { Company } from '../../../core/models/company.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
-import { ValueDialogComponent } from './value-dialog.component';
+
+interface TableRow {
+  id?: string;
+  [key: string]: any;
+  isEditing?: boolean;
+  isNew?: boolean;
+}
 
 @Component({
   selector: 'app-predefined-values',
   standalone: true,
-  imports: [CommonModule, MaterialModule],
-  styleUrls: ['./predefined-values.component.scss'],
-  template: `
-    <div class="admin-container">
-      <mat-toolbar color="primary">
-        <button mat-icon-button (click)="router.navigate(['/dashboard'])">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <span>⚙️ Paramètres - Valeurs Prédéfinies</span>
-      </mat-toolbar>
-
-      <div class="admin-content">
-        <mat-tab-group>
-          <!-- Centrales Tab -->
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="tab-icon">location_city</mat-icon>
-              Centrales
-            </ng-template>
-            <div class="tab-content">
-              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.CENTRALE)">
-                <mat-icon>add</mat-icon>
-                Ajouter une centrale
-              </button>
-              
-              @if (values[predefinedType.CENTRALE] && values[predefinedType.CENTRALE].length > 0) {
-                <div class="value-grid">
-                  @for (value of values[predefinedType.CENTRALE]; track value.id) {
-                    <mat-card class="value-card">
-                      <mat-card-header>
-                        <mat-card-title>{{ value.value }}</mat-card-title>
-                        @if (!value.isActive) {
-                          <mat-chip class="inactive-chip">Inactif</mat-chip>
-                        }
-                      </mat-card-header>
-                      <mat-card-content>
-                        @if (value.description) {
-                          <p class="description">{{ value.description }}</p>
-                        }
-                        <p class="equipment-count">{{ getEquipmentCount(value.id) }} équipement(s)</p>
-                      </mat-card-content>
-                      <mat-card-actions>
-                        <button mat-icon-button (click)="openDialog(predefinedType.CENTRALE, value)" matTooltip="Modifier">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </mat-card-actions>
-                    </mat-card>
-                  }
-                </div>
-              } @else {
-                <p class="empty-message">Aucune centrale configurée</p>
-              }
-            </div>
-          </mat-tab>
-
-          <!-- Équipements Tab -->
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="tab-icon">settings</mat-icon>
-              Équipements
-            </ng-template>
-            <div class="tab-content">
-              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.EQUIPEMENT)">
-                <mat-icon>add</mat-icon>
-                Ajouter un équipement
-              </button>
-              
-              @if (values[predefinedType.EQUIPEMENT] && values[predefinedType.EQUIPEMENT].length > 0) {
-                <div class="value-grid">
-                  @for (value of values[predefinedType.EQUIPEMENT]; track value.id) {
-                    <mat-card class="value-card">
-                      <mat-card-header>
-                        <mat-card-title>{{ value.value }}</mat-card-title>
-                        @if (!value.isActive) {
-                          <mat-chip class="inactive-chip">Inactif</mat-chip>
-                        }
-                      </mat-card-header>
-                      <mat-card-content>
-                        @if (value.description) {
-                          <p class="description">{{ value.description }}</p>
-                        }
-                        @if (value.parentId) {
-                          <p class="parent-info">📍 {{ getCentraleName(value.parentId) }}</p>
-                        }
-                      </mat-card-content>
-                      <mat-card-actions>
-                        <button mat-icon-button (click)="openDialog(predefinedType.EQUIPEMENT, value)" matTooltip="Modifier">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </mat-card-actions>
-                    </mat-card>
-                  }
-                </div>
-              } @else {
-                <p class="empty-message">Aucun équipement configuré</p>
-              }
-            </div>
-          </mat-tab>
-
-          <!-- Types d'événements Tab -->
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="tab-icon">event</mat-icon>
-              Types d'événements
-            </ng-template>
-            <div class="tab-content">
-              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.TYPE_EVENEMENT)">
-                <mat-icon>add</mat-icon>
-                Ajouter un type
-              </button>
-              
-              @if (values[predefinedType.TYPE_EVENEMENT] && values[predefinedType.TYPE_EVENEMENT].length > 0) {
-                <div class="value-grid">
-                  @for (value of values[predefinedType.TYPE_EVENEMENT]; track value.id) {
-                    <mat-card class="value-card">
-                      <mat-card-header>
-                        <mat-card-title>{{ value.value }}</mat-card-title>
-                        @if (!value.isActive) {
-                          <mat-chip class="inactive-chip">Inactif</mat-chip>
-                        }
-                      </mat-card-header>
-                      <mat-card-content>
-                        @if (value.description) {
-                          <p class="description">{{ value.description }}</p>
-                        }
-                      </mat-card-content>
-                      <mat-card-actions>
-                        <button mat-icon-button (click)="openDialog(predefinedType.TYPE_EVENEMENT, value)" matTooltip="Modifier">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </mat-card-actions>
-                    </mat-card>
-                  }
-                </div>
-              } @else {
-                <p class="empty-message">Aucun type d'événement configuré</p>
-              }
-            </div>
-          </mat-tab>
-
-          <!-- Types de dysfonctionnements Tab -->
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="tab-icon">warning</mat-icon>
-              Dysfonctionnements
-            </ng-template>
-            <div class="tab-content">
-              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.TYPE_DYSFONCTIONNEMENT)">
-                <mat-icon>add</mat-icon>
-                Ajouter un type
-              </button>
-              
-              @if (values[predefinedType.TYPE_DYSFONCTIONNEMENT] && values[predefinedType.TYPE_DYSFONCTIONNEMENT].length > 0) {
-                <div class="value-grid">
-                  @for (value of values[predefinedType.TYPE_DYSFONCTIONNEMENT]; track value.id) {
-                    <mat-card class="value-card">
-                      <mat-card-header>
-                        <mat-card-title>{{ value.value }}</mat-card-title>
-                        @if (!value.isActive) {
-                          <mat-chip class="inactive-chip">Inactif</mat-chip>
-                        }
-                      </mat-card-header>
-                      <mat-card-content>
-                        @if (value.description) {
-                          <p class="description">{{ value.description }}</p>
-                        }
-                      </mat-card-content>
-                      <mat-card-actions>
-                        <button mat-icon-button (click)="openDialog(predefinedType.TYPE_DYSFONCTIONNEMENT, value)" matTooltip="Modifier">
-                          <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </mat-card-actions>
-                    </mat-card>
-                  }
-                </div>
-              } @else {
-                <p class="empty-message">Aucun type de dysfonctionnement configuré</p>
-              }
-            </div>
-          </mat-tab>
-        </mat-tab-group>
-      </div>
-    </div>
-  `
+  imports: [CommonModule, MaterialModule, FormsModule],
+  templateUrl: './predefined-values.component.html',
+  styleUrls: ['./predefined-values.component.scss']
 })
 export class PredefinedValuesComponent implements OnInit {
-  values: PredefinedValuesMap = {} as PredefinedValuesMap;
-  predefinedType = PredefinedType;
+  // Data arrays
+  centrales: TableRow[] = [];
+  equipements: TableRow[] = [];
+  typesEvenements: TableRow[] = [];
+  dysfonctionnements: TableRow[] = [];
+  intervenants: TableRow[] = [];
+  companies: TableRow[] = [];
+  
+  // Search filters
+  searchCentrale = '';
+  searchEquipement = '';
+  searchTypeEvenement = '';
+  searchDysfonctionnement = '';
+  searchIntervenant = '';
+  searchCompany = '';
+  
+  // New row templates
+  newCentrale: TableRow = { value: '', nickname: '', isNew: true };
+  newEquipement: TableRow = { value: '', parentId: '', equipmentType: '', isNew: true };
+  newTypeEvenement: TableRow = { value: '', isNew: true };
+  newDysfonctionnement: TableRow = { value: '', isNew: true };
+  newIntervenant: TableRow = { name: '', surname: '', phone: '', companyId: '', isNew: true };
+  newCompany: TableRow = { name: '', isNew: true };
 
   constructor(
     private predefinedService: PredefinedService,
+    private intervenantService: IntervenantService,
+    private companyService: CompanyService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog,
     public router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadValues();
+    this.loadAllData();
   }
 
-  loadValues(): void {
+  loadAllData(): void {
+    this.loadPredefinedValues();
+    this.loadIntervenants();
+    this.loadCompanies();
+  }
+
+  loadPredefinedValues(): void {
     this.predefinedService.getAllValues().subscribe({
       next: (response) => {
         if (response.success) {
-          this.values = response.data.values;
+          this.centrales = (response.data.values.centrale || []).map(v => ({ ...v, isEditing: false }));
+          this.equipements = (response.data.values.equipement || []).map(v => ({ ...v, isEditing: false }));
+          this.typesEvenements = (response.data.values.type_evenement || []).map(v => ({ ...v, isEditing: false }));
+          this.dysfonctionnements = (response.data.values.type_dysfonctionnement || []).map(v => ({ ...v, isEditing: false }));
         }
       },
       error: () => {
-        this.snackBar.open('Erreur de chargement', 'Fermer', { duration: 3000 });
+        this.snackBar.open('Erreur de chargement des valeurs prédéfinies', 'Fermer', { duration: 3000 });
       }
     });
   }
 
-  openDialog(type: PredefinedType, value?: PredefinedValue): void {
-    const dialogRef = this.dialog.open(ValueDialogComponent, {
-      width: '500px',
-      data: { value, type, allValues: this.values }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        if (result.id) {
-          this.updateValue(result);
-        } else {
-          this.createValue(result);
+  loadIntervenants(): void {
+    this.intervenantService.getIntervenants({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.intervenants = response.data.intervenants.map(i => ({ ...i, isEditing: false }));
         }
+      },
+      error: () => {
+        this.snackBar.open('Erreur de chargement des intervenants', 'Fermer', { duration: 3000 });
       }
     });
   }
 
-  createValue(data: Partial<PredefinedValue>): void {
+  loadCompanies(): void {
+    this.companyService.getCompanies({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.companies = response.data.companies.map(c => ({ ...c, isEditing: false }));
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur de chargement des entreprises', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  // Centrale methods
+  addCentrale(): void {
+    if (!this.newCentrale['value']) {
+      this.snackBar.open('Le nom de la centrale est requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    const data = {
+      type: PredefinedType.CENTRALE,
+      value: this.newCentrale['value'],
+      nickname: this.newCentrale['nickname'] || undefined
+    };
+
     this.predefinedService.createValue(data).subscribe({
-      next: () => {
-        this.snackBar.open('Valeur créée avec succès', 'Fermer', { duration: 3000 });
-        this.loadValues();
+      next: (response) => {
+        if (response.success) {
+          this.centrales.push({ ...response.data.value, isEditing: false });
+          this.newCentrale = { value: '', nickname: '', isNew: true };
+          this.snackBar.open('Centrale ajoutée', 'Fermer', { duration: 2000 });
+        }
       },
       error: () => {
-        this.snackBar.open('Erreur lors de la création', 'Fermer', { duration: 3000 });
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
       }
     });
   }
 
-  updateValue(data: PredefinedValue): void {
-    this.predefinedService.updateValue(data.id, data).subscribe({
+  updateCentrale(centrale: TableRow): void {
+    this.predefinedService.updateValue(centrale.id!, centrale).subscribe({
       next: () => {
-        this.snackBar.open('Valeur modifiée avec succès', 'Fermer', { duration: 3000 });
-        this.loadValues();
+        centrale.isEditing = false;
+        this.snackBar.open('Centrale modifiée', 'Fermer', { duration: 2000 });
       },
       error: () => {
         this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
@@ -277,12 +149,12 @@ export class PredefinedValuesComponent implements OnInit {
     });
   }
 
-  deleteValue(value: PredefinedValue): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer "${value.value}" ?`)) {
-      this.predefinedService.deleteValue(value.id).subscribe({
+  deleteCentrale(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette centrale ?')) {
+      this.predefinedService.deleteValue(id).subscribe({
         next: () => {
-          this.snackBar.open('Valeur supprimée avec succès', 'Fermer', { duration: 3000 });
-          this.loadValues();
+          this.centrales = this.centrales.filter(c => c.id !== id);
+          this.snackBar.open('Centrale supprimée', 'Fermer', { duration: 2000 });
         },
         error: () => {
           this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
@@ -291,11 +163,315 @@ export class PredefinedValuesComponent implements OnInit {
     }
   }
 
-  getEquipmentCount(centraleId: string): number {
-    return this.values[PredefinedType.EQUIPEMENT]?.filter(eq => eq.parentId === centraleId).length || 0;
+  // Équipement methods
+  addEquipement(): void {
+    if (!this.newEquipement['value'] || !this.newEquipement['parentId']) {
+      this.snackBar.open('Le nom et la centrale sont requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    const data = {
+      type: PredefinedType.EQUIPEMENT,
+      value: this.newEquipement['value'],
+      parentId: this.newEquipement['parentId'],
+      equipmentType: this.newEquipement['equipmentType'] || undefined
+    };
+
+    this.predefinedService.createValue(data).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.equipements.push({ ...response.data.value, isEditing: false });
+          this.newEquipement = { value: '', parentId: '', equipmentType: '', isNew: true };
+          this.snackBar.open('Équipement ajouté', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateEquipement(equipement: TableRow): void {
+    this.predefinedService.updateValue(equipement.id!, equipement).subscribe({
+      next: () => {
+        equipement.isEditing = false;
+        this.snackBar.open('Équipement modifié', 'Fermer', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteEquipement(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?')) {
+      this.predefinedService.deleteValue(id).subscribe({
+        next: () => {
+          this.equipements = this.equipements.filter(e => e.id !== id);
+          this.snackBar.open('Équipement supprimé', 'Fermer', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  // Type Événement methods
+  addTypeEvenement(): void {
+    if (!this.newTypeEvenement['value']) {
+      this.snackBar.open('Le titre est requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    const data = {
+      type: PredefinedType.TYPE_EVENEMENT,
+      value: this.newTypeEvenement['value']
+    };
+
+    this.predefinedService.createValue(data).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.typesEvenements.push({ ...response.data.value, isEditing: false });
+          this.newTypeEvenement = { value: '', isNew: true };
+          this.snackBar.open('Type d\'événement ajouté', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateTypeEvenement(type: TableRow): void {
+    this.predefinedService.updateValue(type.id!, type).subscribe({
+      next: () => {
+        type.isEditing = false;
+        this.snackBar.open('Type d\'événement modifié', 'Fermer', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteTypeEvenement(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce type d\'événement ?')) {
+      this.predefinedService.deleteValue(id).subscribe({
+        next: () => {
+          this.typesEvenements = this.typesEvenements.filter(t => t.id !== id);
+          this.snackBar.open('Type d\'événement supprimé', 'Fermer', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  // Dysfonctionnement methods
+  addDysfonctionnement(): void {
+    if (!this.newDysfonctionnement['value']) {
+      this.snackBar.open('Le titre est requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    const data = {
+      type: PredefinedType.TYPE_DYSFONCTIONNEMENT,
+      value: this.newDysfonctionnement['value']
+    };
+
+    this.predefinedService.createValue(data).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.dysfonctionnements.push({ ...response.data.value, isEditing: false });
+          this.newDysfonctionnement = { value: '', isNew: true };
+          this.snackBar.open('Dysfonctionnement ajouté', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateDysfonctionnement(dysfonctionnement: TableRow): void {
+    this.predefinedService.updateValue(dysfonctionnement.id!, dysfonctionnement).subscribe({
+      next: () => {
+        dysfonctionnement.isEditing = false;
+        this.snackBar.open('Dysfonctionnement modifié', 'Fermer', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteDysfonctionnement(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce dysfonctionnement ?')) {
+      this.predefinedService.deleteValue(id).subscribe({
+        next: () => {
+          this.dysfonctionnements = this.dysfonctionnements.filter(d => d.id !== id);
+          this.snackBar.open('Dysfonctionnement supprimé', 'Fermer', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  // Intervenant methods (from previous implementation)
+  addIntervenant(): void {
+    if (!this.newIntervenant['name'] || !this.newIntervenant['surname'] || !this.newIntervenant['phone']) {
+      this.snackBar.open('Nom, prénom et téléphone sont requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    this.intervenantService.createIntervenant(this.newIntervenant).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.intervenants.push({ ...response.data.intervenant, isEditing: false });
+          this.newIntervenant = { name: '', surname: '', phone: '', companyId: '', isNew: true };
+          this.snackBar.open('Intervenant ajouté', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateIntervenant(intervenant: TableRow): void {
+    this.intervenantService.updateIntervenant(intervenant.id!, intervenant).subscribe({
+      next: () => {
+        intervenant.isEditing = false;
+        this.snackBar.open('Intervenant modifié', 'Fermer', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteIntervenant(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet intervenant ?')) {
+      this.intervenantService.deleteIntervenant(id).subscribe({
+        next: () => {
+          this.intervenants = this.intervenants.filter(i => i.id !== id);
+          this.snackBar.open('Intervenant supprimé', 'Fermer', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  // Company methods (from previous implementation)
+  addCompany(): void {
+    if (!this.newCompany['name']) {
+      this.snackBar.open('Le nom est requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    this.companyService.createCompany(this.newCompany).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.companies.push({ ...response.data.company, isEditing: false });
+          this.newCompany = { name: '', isNew: true };
+          this.snackBar.open('Entreprise ajoutée', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateCompany(company: TableRow): void {
+    this.companyService.updateCompany(company.id!, company).subscribe({
+      next: () => {
+        company.isEditing = false;
+        this.snackBar.open('Entreprise modifiée', 'Fermer', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteCompany(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette entreprise ?')) {
+      this.companyService.deleteCompany(id).subscribe({
+        next: () => {
+          this.companies = this.companies.filter(c => c.id !== id);
+          this.snackBar.open('Entreprise supprimée', 'Fermer', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  // Utility methods
+  startEdit(row: TableRow): void {
+    row.isEditing = true;
+  }
+
+  cancelEdit(row: TableRow): void {
+    row.isEditing = false;
+    this.loadAllData(); // Reload to reset changes
   }
 
   getCentraleName(centraleId: string): string {
-    return this.values[PredefinedType.CENTRALE]?.find(c => c.id === centraleId)?.value || 'Inconnue';
+    const centrale = this.centrales.find(c => c['id'] === centraleId);
+    return centrale ? centrale['value'] : '-';
+  }
+
+  getCompanyName(companyId: string): string {
+    const company = this.companies.find(c => c['id'] === companyId);
+    return company ? company['name'] : '-';
+  }
+
+  // Filter methods
+  get filteredCentrales() {
+    return this.centrales.filter(c => 
+      c['value']?.toLowerCase().includes(this.searchCentrale.toLowerCase()) ||
+      c['nickname']?.toLowerCase().includes(this.searchCentrale.toLowerCase())
+    );
+  }
+
+  get filteredEquipements() {
+    return this.equipements.filter(e => 
+      e['value']?.toLowerCase().includes(this.searchEquipement.toLowerCase()) ||
+      e['equipmentType']?.toLowerCase().includes(this.searchEquipement.toLowerCase())
+    );
+  }
+
+  get filteredTypesEvenements() {
+    return this.typesEvenements.filter(t => 
+      t['value']?.toLowerCase().includes(this.searchTypeEvenement.toLowerCase())
+    );
+  }
+
+  get filteredDysfonctionnements() {
+    return this.dysfonctionnements.filter(d => 
+      d['value']?.toLowerCase().includes(this.searchDysfonctionnement.toLowerCase())
+    );
+  }
+
+  get filteredIntervenants() {
+    return this.intervenants.filter(i => 
+      i['name']?.toLowerCase().includes(this.searchIntervenant.toLowerCase()) ||
+      i['surname']?.toLowerCase().includes(this.searchIntervenant.toLowerCase())
+    );
+  }
+
+  get filteredCompanies() {
+    return this.companies.filter(c => 
+      c['name']?.toLowerCase().includes(this.searchCompany.toLowerCase())
+    );
   }
 }

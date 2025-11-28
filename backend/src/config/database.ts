@@ -5,6 +5,7 @@ import { Intervention } from '../entities/Intervention';
 import { Intervenant } from '../entities/Intervenant';
 import { PredefinedValue } from '../entities/PredefinedValue';
 import { AuditLog } from '../entities/AuditLog';
+import { Company } from '../entities/Company';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ const dbConfig = {
   username: process.env.DB_USER || 'supervision_user',
   password: process.env.DB_PASSWORD || 'supervision_password',
   database: process.env.DB_NAME || 'supervision_maintenance',
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: false,  // Disabled - use migrations instead
   logging: process.env.NODE_ENV === 'development',
 };
 
@@ -29,8 +30,8 @@ console.log('🔍 [Database Config]', {
 
 export const AppDataSource = new DataSource({
   ...dbConfig,
-  entities: [User, Intervention, Intervenant, PredefinedValue, AuditLog],
-  migrations: ['src/database/migrations/**/*.ts'],
+  entities: [User, Intervention, Intervenant, PredefinedValue, AuditLog, Company],
+  migrations: ['src/database/migrations/**/*.ts', 'src/migrations/**/*.ts'],
   subscribers: [],
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });

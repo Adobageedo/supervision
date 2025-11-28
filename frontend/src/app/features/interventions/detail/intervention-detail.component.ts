@@ -67,14 +67,21 @@ import { Intervention } from '../../../core/models/intervention.model';
                 </div>
 
                 <div class="info-item">
-                  <strong>Date de début:</strong>
-                  <span>{{ intervention.dateDebut | date:'medium' }}</span>
+                  <strong>Date de référence:</strong>
+                  <span>{{ intervention.dateRef | date:'medium' }}</span>
                 </div>
 
-                @if (intervention.dateFin) {
+                @if (intervention.debutInter) {
                   <div class="info-item">
-                    <strong>Date de fin:</strong>
-                    <span>{{ intervention.dateFin | date:'medium' }}</span>
+                    <strong>Début intervention:</strong>
+                    <span>{{ intervention.debutInter | date:'medium' }}</span>
+                  </div>
+                }
+
+                @if (intervention.finInter) {
+                  <div class="info-item">
+                    <strong>Fin intervention:</strong>
+                    <span>{{ intervention.finInter | date:'medium' }}</span>
                   </div>
                 }
 
@@ -92,21 +99,30 @@ import { Intervention } from '../../../core/models/intervention.model';
                   </div>
                 }
 
-                <div class="info-item">
-                  <strong>Intervention réalisée:</strong>
-                  <mat-chip [color]="intervention.hasIntervention ? 'primary' : ''">
-                    {{ intervention.hasIntervention ? 'Oui' : 'Non' }}
-                  </mat-chip>
-                </div>
+                @if (intervention.entrepriseIntervenante || intervention.intervenantEnregistre) {
+                  <div class="info-item">
+                    <strong>Entreprise:</strong>
+                    <span>{{ intervention.entrepriseIntervenante || 'N/A' }}</span>
+                  </div>
+
+                  <div class="info-item">
+                    <strong>Intervenant(s):</strong>
+                    <span>{{ intervention.intervenantEnregistre || 'N/A' }}</span>
+                  </div>
+
+                  @if (intervention.nombreIntervenant) {
+                    <div class="info-item">
+                      <strong>Nombre d'intervenants:</strong>
+                      <span>{{ intervention.nombreIntervenant }}</span>
+                    </div>
+                  }
+                }
 
                 <div class="info-item">
                   <strong>Perte de production:</strong>
                   <mat-chip [color]="intervention.hasPerteProduction ? 'warn' : ''">
                     {{ intervention.hasPerteProduction ? 'Oui' : 'Non' }}
                   </mat-chip>
-                  @if (intervention.perteProduction) {
-                    <span class="detail-text">{{ intervention.perteProduction }} kWh</span>
-                  }
                 </div>
 
                 <div class="info-item">
@@ -114,9 +130,6 @@ import { Intervention } from '../../../core/models/intervention.model';
                   <mat-chip [color]="intervention.hasPerteCommunication ? 'warn' : ''">
                     {{ intervention.hasPerteCommunication ? 'Oui' : 'Non' }}
                   </mat-chip>
-                  @if (intervention.perteCommunication) {
-                    <span class="detail-text">{{ intervention.perteCommunication }} heures</span>
-                  }
                 </div>
 
                 <div class="info-item">
@@ -149,22 +162,31 @@ import { Intervention } from '../../../core/models/intervention.model';
                 </div>
               }
 
-              @if (intervention.intervenants && intervention.intervenants.length > 0) {
+              @if (intervention.intervenantEnregistre || intervention.entrepriseIntervenante) {
                 <mat-divider class="my-3"></mat-divider>
                 <div class="intervenants-section">
-                  <h3>Intervenants</h3>
-                  <mat-list>
-                    @for (intervenant of intervention.intervenants; track intervenant.id) {
-                      <mat-list-item>
-                        <mat-icon matListItemIcon>person</mat-icon>
-                        <div matListItemTitle>{{ intervenant.nom }} {{ intervenant.prenom }}</div>
-                        <div matListItemLine>
-                          {{ intervenant.type }}
-                          @if (intervenant.entreprise) { - {{ intervenant.entreprise }} }
-                        </div>
-                      </mat-list-item>
-                    }
-                  </mat-list>
+                  <h3>Informations Intervention</h3>
+                  
+                  @if (intervention.entrepriseIntervenante) {
+                    <div class="info-item">
+                      <strong>Entreprise:</strong>
+                      <span>{{ intervention.entrepriseIntervenante }}</span>
+                    </div>
+                  }
+                  
+                  @if (intervention.intervenantEnregistre) {
+                    <div class="info-item">
+                      <strong>Intervenant(s):</strong>
+                      <span>{{ intervention.intervenantEnregistre }}</span>
+                    </div>
+                  }
+                  
+                  @if (intervention.nombreIntervenant) {
+                    <div class="info-item">
+                      <strong>Nombre d'intervenants:</strong>
+                      <span>{{ intervention.nombreIntervenant }}</span>
+                    </div>
+                  }
                 </div>
               }
             </mat-card-content>
@@ -283,7 +305,6 @@ export class InterventionDetailComponent implements OnInit {
           console.log('🔍 [DETAIL] Raw intervention data:', this.intervention);
           console.log('🔍 [DETAIL] typeEvenement:', this.intervention.typeEvenement, typeof this.intervention.typeEvenement);
           console.log('🔍 [DETAIL] typeDysfonctionnement:', this.intervention.typeDysfonctionnement, typeof this.intervention.typeDysfonctionnement);
-          console.log('🔍 [DETAIL] hasIntervention:', this.intervention.hasIntervention);
           console.log('🔍 [DETAIL] hasPerteProduction:', this.intervention.hasPerteProduction);
           console.log('🔍 [DETAIL] hasPerteCommunication:', this.intervention.hasPerteCommunication);
           console.log('🔍 [DETAIL] rapportAttendu:', this.intervention.rapportAttendu);

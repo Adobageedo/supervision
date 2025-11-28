@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MaterialModule } from '../../../shared/material.module';
 import { InterventionService } from '../../../core/services/intervention.service';
@@ -12,7 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
   selector: 'app-intervention-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, MaterialModule],
   styleUrls: ['./intervention-form.component.scss'],
   template: `
     <div class="form-container">
@@ -23,7 +23,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         <span>
           {{ isEditMode ? 'Modifier' : 'Nouvelle' }} Intervention
           @if (isEditMode && originalTitle) {
-            <span class="original-title"> - {{ originalTitle }}</span>
+            <span class="subtitle">: {{ originalTitle }}</span>
           }
         </span>
       </mat-toolbar>
@@ -122,11 +122,39 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
                 @if (interventionForm.get('hasIntervention')?.value) {
                   <div class="conditional-section">
-                    <mat-form-field class="full-width" appearance="outline">
-                      <mat-label>Intervenant Enregistré *</mat-label>
-                      <input matInput formControlName="intervenantEnregistre">
-                    </mat-form-field>
+                    
+                    <!-- Intervenant Details -->
+                    <div class="intervenant-info">
+                      <div class="two-column-layout">
+                        <div class="column-left">
+                          <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Entreprise Intervenante</mat-label>
+                            <input matInput formControlName="societeIntervenant" placeholder="Nom de l'entreprise">
+                            <mat-icon matSuffix>business</mat-icon>
+                          </mat-form-field>
+                        </div>
+                        
+                        <div class="column-right">
+                          <mat-form-field class="full-width" appearance="outline">
+                            <mat-label>Nombre d'Intervenants</mat-label>
+                            <input matInput type="number" formControlName="nombreIntervenant" min="1" placeholder="Ex: 2">
+                            <mat-icon matSuffix>group</mat-icon>
+                          </mat-form-field>
+                        </div>
+                      </div>
 
+                      <mat-form-field class="full-width" appearance="outline">
+                        <mat-label>Intervenant(s) Enregistré(s) *</mat-label>
+                        <textarea matInput formControlName="intervenantEnregistre" 
+                                  rows="3" 
+                                  placeholder="Ex: Jean Dupont (Technicien), Marie Martin (Ingénieur)">
+                        </textarea>
+                        <mat-icon matSuffix>person</mat-icon>
+                        <mat-hint>Saisissez les noms et rôles des intervenants</mat-hint>
+                      </mat-form-field>
+                    </div>
+
+                    <!-- Dates Intervention -->
                     <div class="two-column-layout">
                       <div class="column-left">
                         <mat-form-field class="full-width" appearance="outline">
@@ -170,22 +198,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
                         </div>
                       </div>
                     }
-
-                    <div class="two-column-layout">
-                      <div class="column-left">
-                        <mat-form-field class="full-width" appearance="outline">
-                          <mat-label>Société Intervenant</mat-label>
-                          <input matInput formControlName="societeIntervenant">
-                        </mat-form-field>
-                      </div>
-
-                      <div class="column-right">
-                        <mat-form-field class="full-width" appearance="outline">
-                          <mat-label>Nombre d'Intervenants</mat-label>
-                          <input matInput type="number" formControlName="nombreIntervenant" min="1">
-                        </mat-form-field>
-                      </div>
-                    </div>
                   </div>
                 }
               </div>
@@ -302,7 +314,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
     }
 
     .form-content {
@@ -327,7 +339,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       padding: 24px;
       background: #f8f9fa;
       border-radius: 12px;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid #1976d2;
     }
 
     .form-section h3 {
@@ -335,12 +347,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       align-items: center;
       gap: 12px;
       margin: 0 0 20px 0;
-      color: #667eea;
+      color: #1976d2;
       font-size: 20px;
       font-weight: 500;
     }
 
     .form-section h3 mat-icon {
+      color: #1976d2;
       color: #667eea;
     }
 
@@ -401,6 +414,90 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       font-weight: normal;
       opacity: 0.9;
     }
+
+    /* NEW: Intervenant section styles */
+    .intervenants-section {
+      margin-top: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-header h4 {
+      margin: 0;
+      color: #1976d2;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .no-intervenant-hint {
+      display: block;
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .intervenant-assignment {
+      margin-bottom: 16px;
+      padding: 16px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    .assignment-fields {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .assignment-fields mat-form-field {
+      margin-bottom: 0;
+    }
+
+    .intervenant-type {
+      color: #666;
+      font-size: 12px;
+    }
+
+    mat-option {
+      height: auto !important;
+      min-height: 48px;
+      padding: 8px 16px !important;
+    }
+
+    .add-new-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .add-new-buttons button {
+      flex: 1;
+    }
+
+    .two-column-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .column-left, .column-right {
+      display: flex;
+      flex-direction: column;
+    }
   `]
 })
 export class InterventionFormComponent implements OnInit {
@@ -413,6 +510,8 @@ export class InterventionFormComponent implements OnInit {
   selectedCentraleId: string | null = null;
   predefinedType = PredefinedType;
   loading = false;
+  
+  // Removed: No longer using intervenant/company lists
 
   constructor(
     private fb: FormBuilder,
@@ -455,17 +554,12 @@ export class InterventionFormComponent implements OnInit {
       rapportAttendu: [false],
       rapportRecu: [false],
       
-      commentaires: [''],
-      intervenants: this.fb.array([])
+      commentaires: ['']
     });
     
     // Set up conditional validators
     this.setupConditionalValidators();
     this.setupCentraleWatcher();
-  }
-
-  get intervenants(): FormArray {
-    return this.interventionForm.get('intervenants') as FormArray;
   }
 
   setupCentraleWatcher(): void {
@@ -676,8 +770,11 @@ export class InterventionFormComponent implements OnInit {
           console.log('🔍 [FORM] typeEvenement:', intervention.typeEvenement, typeof intervention.typeEvenement);
           console.log('🔍 [FORM] typeDysfonctionnement:', intervention.typeDysfonctionnement, typeof intervention.typeDysfonctionnement);
           
-          // Parse JSON strings for type fields
-          const formData: any = { ...intervention };
+          // Parse JSON strings for type fields and map field names
+          const formData: any = { 
+            ...intervention,
+            titreEvenement: intervention.titre  // Map titre to titreEvenement for the form
+          };
           
           if (typeof intervention.typeEvenement === 'string') {
             try {
@@ -702,69 +799,76 @@ export class InterventionFormComponent implements OnInit {
           console.log('🔍 [FORM] Final formData:', formData);
           this.interventionForm.patchValue(formData);
           
-          // Load intervenants
-          if (intervention.intervenants) {
-            intervention.intervenants.forEach(intervenant => {
-              this.intervenants.push(this.fb.group(intervenant));
-            });
-          }
+          // Intervention data loaded successfully
         }
       }
     });
   }
 
-  addIntervenant(): void {
-    this.intervenants.push(this.fb.group({
-      nom: [''],
-      prenom: [''],
-      type: [''],
-      entreprise: ['']
-    }));
-  }
-
-  removeIntervenant(index: number): void {
-    this.intervenants.removeAt(index);
-  }
+  // Removed methods no longer needed with simplified schema
 
   onSubmit(): void {
     if (this.interventionForm.valid) {
       this.loading = true;
       const formData = this.interventionForm.value;
       
-      // Combine date and time fields for intervention
-      const data = { ...formData };
-      if (formData.dateDebutIntervention && formData.heureDebutIntervention) {
-        const dateDebut = new Date(formData.dateDebutIntervention);
-        const [hours, minutes] = formData.heureDebutIntervention.split(':');
-        dateDebut.setHours(parseInt(hours), parseInt(minutes));
-        data.dateDebutIntervention = dateDebut.toISOString();
+      // Map form fields to new API schema
+      const data: any = {
+        titreEvenement: formData.titreEvenement,
+        centrale: formData.centrale,
+        equipement: formData.equipement,
+        typeEvenement: JSON.stringify(formData.typeEvenement || []),
+        typeDysfonctionnement: JSON.stringify(formData.typeDysfonctionnement || []),
+        dateRef: formData.dateRef,
+        commentaires: formData.commentaires,
+        rapportAttendu: formData.rapportAttendu,
+        rapportRecu: formData.rapportRecu,
+      };
+
+      // Intervention fields
+      if (formData.hasIntervention) {
+        data.entrepriseIntervenante = formData.societeIntervenant;
+        data.nombreIntervenant = formData.nombreIntervenant ? parseInt(formData.nombreIntervenant) : null;
+        data.intervenantEnregistre = formData.intervenantEnregistre;
+        
+        // Combine date and time for debutInter
+        if (formData.dateDebutIntervention && formData.heureDebutIntervention) {
+          const dateDebut = new Date(formData.dateDebutIntervention);
+          const [hours, minutes] = formData.heureDebutIntervention.split(':');
+          dateDebut.setHours(parseInt(hours), parseInt(minutes));
+          data.debutInter = dateDebut.toISOString();
+        }
+        
+        // Combine date and time for finInter
+        if (formData.interventionTerminee && formData.dateFinIntervention && formData.heureFinIntervention) {
+          const dateFin = new Date(formData.dateFinIntervention);
+          const [hours, minutes] = formData.heureFinIntervention.split(':');
+          dateFin.setHours(parseInt(hours), parseInt(minutes));
+          data.finInter = dateFin.toISOString();
+        }
       }
-      if (formData.dateFinIntervention && formData.heureFinIntervention) {
-        const dateFin = new Date(formData.dateFinIntervention);
-        const [hours, minutes] = formData.heureFinIntervention.split(':');
-        dateFin.setHours(parseInt(hours), parseInt(minutes));
-        data.dateFinIntervention = dateFin.toISOString();
-      }
+
+      // Perte fields
+      data.hasPerteProduction = formData.hasPerteProduction;
+      data.hasPerteCommunication = formData.hasPerteCommunication;
       
-      // Combine date and time fields for indisponibilite
+      // Indisponibilite fields
       if (formData.dateDebutIndisponibilite && formData.heureDebutIndisponibilite) {
         const dateDebut = new Date(formData.dateDebutIndisponibilite);
         const [hours, minutes] = formData.heureDebutIndisponibilite.split(':');
         dateDebut.setHours(parseInt(hours), parseInt(minutes));
-        data.dateDebutIndisponibilite = dateDebut.toISOString();
+        data.dateIndisponibiliteDebut = dateDebut.toISOString();
       }
-      if (formData.dateFinIndisponibilite && formData.heureFinIndisponibilite) {
+      
+      if (formData.indisponibiliteTerminee && formData.dateFinIndisponibilite && formData.heureFinIndisponibilite) {
         const dateFin = new Date(formData.dateFinIndisponibilite);
         const [hours, minutes] = formData.heureFinIndisponibilite.split(':');
         dateFin.setHours(parseInt(hours), parseInt(minutes));
-        data.dateFinIndisponibilite = dateFin.toISOString();
+        data.dateIndisponibiliteFin = dateFin.toISOString();
       }
       
-      // Remove time fields from data as they're now combined
-      delete data.heureDebutIntervention;
-      delete data.heureFinIntervention;
-      delete data.heureDebutIndisponibilite;
-      delete data.heureFinIndisponibilite;
+      data.indispoTerminee = formData.indisponibiliteTerminee;
+      console.log('🔍 [FORM] Submitting data:', data);
 
       const operation = this.isEditMode && this.interventionId
         ? this.interventionService.updateIntervention(this.interventionId, data)

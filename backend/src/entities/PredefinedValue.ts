@@ -34,6 +34,12 @@ export class PredefinedValue {
 
   @Column({ length: 255, nullable: true })
   description?: string;
+  
+  @Column({ length: 150, nullable: true })
+  nickname?: string;
+  
+  @Column({ length: 150, nullable: true })
+  equipmentType?: string;
 
   @Column({ nullable: true })
   parentId?: string;

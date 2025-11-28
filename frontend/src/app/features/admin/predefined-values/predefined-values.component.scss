@@ -1,98 +1,254 @@
-@use '../../../../styles/variables' as *;
-@use '../../../../styles/mixins' as *;
-
 .admin-container {
   height: 100vh;
-  @include flex-column;
-  background: #fafbfc;
+  display: flex;
+  flex-direction: column;
+  background: #f6f8fa;
 }
 
 .admin-content {
   flex: 1;
-  padding: $spacing-xl;
   overflow-y: auto;
-}
-
-.tab-content {
-  padding: $spacing-xl;
+  padding: 24px;
 }
 
 .tab-icon {
-  margin-right: $spacing-sm;
+  margin-right: 8px;
+}
+
+.tab-content {
+  padding: 24px;
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 16px;
+}
+
+// Excel-like table styles
+.table-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th {
+    background: #f6f8fa;
+    font-weight: 600;
+    color: #24292f;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 2px solid #d0d7de;
+    font-size: 13px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e1e4e8;
+    font-size: 13px;
+    color: #24292f;
+    vertical-align: middle;
+  }
+  
+  tr {
+    transition: background-color 0.15s ease;
+    
+    &:hover {
+      background: #f6f8fa;
+    }
+    
+    &:nth-child(even) {
+      background: #fafbfc;
+      
+      &:hover {
+        background: #f3f4f6;
+      }
+    }
+  }
+}
+
+.cell-input {
+  width: 100%;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #0969da;
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+  }
+  
+  &:hover {
+    border-color: #0969da;
+  }
+}
+
+.cell-select {
+  width: 100%;
+  font-size: 13px;
+  
+  ::ng-deep .mat-mdc-select-trigger {
+    padding: 6px 8px;
+  }
+}
+
+.add-row {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f6f8fa;
+  border-top: 2px solid #d0d7de;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.add-input {
+  flex: 1;
+  min-width: 150px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #0969da;
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+  }
+  
+  &::placeholder {
+    color: #6e7781;
+  }
+  
+  &:hover {
+    border-color: #0969da;
+  }
+}
+
+.add-input-full {
+  flex: 1;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #0969da;
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+  }
+  
+  &::placeholder {
+    color: #6e7781;
+  }
+  
+  &:hover {
+    border-color: #0969da;
+  }
+}
+
+.add-select {
+  flex: 1;
+  min-width: 150px;
+  font-size: 13px;
+  
+  ::ng-deep .mat-mdc-select-trigger {
+    padding: 10px 12px;
+  }
 }
 
 .add-button {
-  margin-bottom: $spacing-xl;
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 20px;
+  font-weight: 500;
+  
+  mat-icon {
+    margin-right: 4px;
+  }
 }
 
-.value-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+// Action buttons styling
+button[mat-icon-button] {
+  width: 36px;
+  height: 36px;
+  
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
 }
 
-.value-card {
-  border-radius: $border-radius-md;
-  border: 1px solid #d0d7de;
-  transition: border-color $transition-normal, box-shadow $transition-normal;
-
-  &:hover {
-    border-color: #0969da;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+// Responsive adjustments
+@media (max-width: 768px) {
+  .add-row {
+    flex-direction: column;
+    
+    .add-input,
+    .add-input-full,
+    .add-select {
+      width: 100%;
+    }
+    
+    .add-button {
+      width: 100%;
+    }
   }
-
-  mat-card-header {
-    background: #f6f8fa;
-    color: #24292f;
-    padding: $spacing-lg;
-    border-radius: 0;
-    margin: -16px -16px 16px -16px;
-    border-bottom: 1px solid #d0d7de;
+  
+  .excel-table {
+    font-size: 12px;
+    
+    th, td {
+      padding: 8px 12px;
+    }
   }
+}
 
-  mat-card-title {
-    color: #24292f;
-    font-size: 16px;
-    font-weight: 600;
+// Material overrides for better Excel feel
+::ng-deep {
+  .mat-mdc-tab-body-content {
+    overflow: visible !important;
   }
-
-  .inactive-chip {
-    background: #f6f8fa;
-    color: #57606a;
-    font-size: 11px;
-    border: 1px solid #d0d7de;
+  
+  .mat-mdc-select-panel {
+    max-height: 300px;
   }
-
-  .description {
-    color: #57606a;
-    font-size: 14px;
-    margin: $spacing-sm 0;
-  }
-
-  .equipment-count,
-  .parent-info {
-    color: #0969da;
-    font-weight: 500;
+  
+  .mat-mdc-option {
     font-size: 13px;
-    margin: $spacing-sm 0 0 0;
-  }
-
-  mat-card-actions {
-    @include flex-between;
-    padding: $spacing-sm $spacing-lg;
-    border-top: 1px solid #d0d7de;
-    margin: $spacing-lg (-$spacing-lg) (-$spacing-lg) (-$spacing-lg);
-    gap: $spacing-sm;
-    justify-content: flex-end;
-    background: #f6f8fa;
   }
 }
 
+// Empty state
 .empty-message {
   text-align: center;
-  color: $gray-400;
-  font-size: 16px;
   padding: 40px;
-  background: $white;
-  border-radius: $border-radius-md;
+  color: #6e7781;
+  font-size: 14px;
+}
+
+// Loading state
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
 }

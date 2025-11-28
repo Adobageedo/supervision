@@ -53,8 +53,12 @@ export class InterventionController {
       // Map frontend field names to backend entity field names
       const interventionData: any = {
         titre: titreEvenement,
-        dateDebut: dateRef,
-        hasIntervention: !!hasIntervention,
+        dateRef: dateRef,
+        entrepriseIntervenante: societeIntervenant,
+        nombreIntervenant: nombreIntervenant,
+        intervenantEnregistre: intervenantEnregistre,
+        debutInter: dateDebutIntervention,
+        finInter: dateFinIntervention,
         hasPerteProduction: !!hasPerteProduction,
         hasPerteCommunication: !!hasPerteCommunication,
         rapportAttendu: !!rapportAttendu,
@@ -66,11 +70,9 @@ export class InterventionController {
 
       console.log('🔍 [CONTROLLER] Final interventionData:', interventionData);
 
-      // Map intervention-related fields if intervention was performed
-      const intervenantsData = hasIntervention && intervenantEnregistre ? [{
-        nom: intervenantEnregistre,  // Use nom instead of nomComplet
-        entreprise: societeIntervenant,
-      }] : [];
+      // TODO: Handle intervenant assignments with new schema
+      // For now, pass empty array - will be updated when frontend uses new schema
+      const intervenantsData: any[] = [];
 
       // Map unavailability dates if there were losses
       if (hasPerteProduction || hasPerteCommunication) {
@@ -107,7 +109,7 @@ export class InterventionController {
         search,
         page = '1',
         limit = '50',
-        sortBy = 'dateDebut',
+        sortBy = 'createdAt',
         sortOrder = 'DESC',
       } = req.query;
 
@@ -116,8 +118,8 @@ export class InterventionController {
         equipement: equipement as string,
         typeEvenement: typeEvenement as string,
         typeDysfonctionnement: typeDysfonctionnement as string,
-        dateDebutFrom: dateDebutFrom ? new Date(dateDebutFrom as string) : undefined,
-        dateDebutTo: dateDebutTo ? new Date(dateDebutTo as string) : undefined,
+        dateRefFrom: dateDebutFrom ? new Date(dateDebutFrom as string) : undefined,
+        dateRefTo: dateDebutTo ? new Date(dateDebutTo as string) : undefined,
         isArchived: isArchived === 'true',
         search: search as string,
       };
@@ -198,12 +200,27 @@ export class InterventionController {
         interventionData.titre = titreEvenement;
       }
       if (dateRef !== undefined) {
-        interventionData.dateDebut = dateRef;
+        interventionData.dateRef = dateRef;
+      }
+      if (societeIntervenant !== undefined) {
+        interventionData.entrepriseIntervenante = societeIntervenant;
+      }
+      if (nombreIntervenant !== undefined) {
+        interventionData.nombreIntervenant = nombreIntervenant;
+      }
+      if (intervenantEnregistre !== undefined) {
+        interventionData.intervenantEnregistre = intervenantEnregistre;
+      }
+      if (dateDebutIntervention !== undefined) {
+        interventionData.debutInter = dateDebutIntervention;
+      }
+      if (dateFinIntervention !== undefined) {
+        interventionData.finInter = dateFinIntervention;
       }
       
       // Update toggle fields with boolean conversion
       if (hasIntervention !== undefined) {
-        interventionData.hasIntervention = !!hasIntervention;
+        // No longer used - intervention presence is determined by debutInter
       }
       if (hasPerteProduction !== undefined) {
         interventionData.hasPerteProduction = !!hasPerteProduction;
@@ -220,11 +237,7 @@ export class InterventionController {
 
       console.log('✅ [CONTROLLER UPDATE] Final interventionData:', interventionData);
 
-      // Map intervention-related fields if intervention was performed
-      const intervenantsData = hasIntervention && intervenantEnregistre ? [{
-        nom: intervenantEnregistre,  // Use nom instead of nomComplet
-        entreprise: societeIntervenant,
-      }] : [];
+      // No longer need intervenants array - all data is in intervention fields
 
       // Map unavailability dates if there were losses
       if (hasPerteProduction || hasPerteCommunication) {
@@ -237,7 +250,6 @@ export class InterventionController {
       const intervention = await this.interventionService.updateIntervention(
         id,
         interventionData,
-        intervenantsData.length > 0 ? intervenantsData : intervenants,
         userId
       );
 
@@ -317,8 +329,8 @@ export class InterventionController {
         equipement: equipement as string,
         typeEvenement: typeEvenement as string,
         typeDysfonctionnement: typeDysfonctionnement as string,
-        dateDebutFrom: dateDebutFrom ? new Date(dateDebutFrom as string) : undefined,
-        dateDebutTo: dateDebutTo ? new Date(dateDebutTo as string) : undefined,
+        dateRefFrom: dateDebutFrom ? new Date(dateDebutFrom as string) : undefined,
+        dateRefTo: dateDebutTo ? new Date(dateDebutTo as string) : undefined,
         isArchived: isArchived === 'true',
         search: search as string,
       };
@@ -333,22 +345,27 @@ export class InterventionController {
       const csvData = result.interventions.map((intervention) => ({
         ID: intervention.id,
         Titre: intervention.titre,
+        'Centrale Type': intervention.centraleType || '',
         Centrale: intervention.centrale,
         Equipement: intervention.equipement,
-        'Type Événement': intervention.typeEvenement,
-        'Type Dysfonctionnement': intervention.typeDysfonctionnement,
-        'Date Début': intervention.dateDebut,
-        'Date Fin': intervention.dateFin || '',
+        'Entreprise Intervenante': intervention.entrepriseIntervenante || '',
+        'Nombre Intervenant': intervention.nombreIntervenant || '',
+        'Intervenant Enregistré': intervention.intervenantEnregistre || '',
+        'Date Ref': intervention.dateRef || '',
+        'Debut Inter': intervention.debutInter || '',
+        'Fin Inter': intervention.finInter || '',
         'Durée (heures)': intervention.dureeHeures || '',
         'Date Indisponibilité Début': intervention.dateIndisponibiliteDebut || '',
         'Date Indisponibilité Fin': intervention.dateIndisponibiliteFin || '',
+        'Indispo Terminée': intervention.indispoTerminee ? 'Oui' : 'Non',
         'Durée Indisponibilité (heures)': intervention.dureeIndisponibiliteHeures || '',
-        Intervenants: intervention.intervenants
-          .map((i) => i.nomComplet)
-          .join('; '),
+        'Type Événement': intervention.typeEvenement || '',
+        'Type Dysfonctionnement': intervention.typeDysfonctionnement || '',
+        'Perte Production': intervention.hasPerteProduction ? 'Oui' : 'Non',
+        'Perte Communication': intervention.hasPerteCommunication ? 'Oui' : 'Non',
+        'Rapport Attendu': intervention.rapportAttendu ? 'Oui' : 'Non',
+        'Rapport Reçu': intervention.rapportRecu ? 'Oui' : 'Non',
         Commentaires: intervention.commentaires || '',
-        'Perte Production': intervention.perteProduction || '',
-        'Perte Communication': intervention.perteCommunication || '',
         Archivé: intervention.isArchived ? 'Oui' : 'Non',
         'Créé le': intervention.createdAt,
         'Créé par': intervention.createdBy?.fullName || '',

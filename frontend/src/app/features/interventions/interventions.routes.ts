@@ -6,6 +6,14 @@ export const INTERVENTION_ROUTES: Routes = [
     loadComponent: () => import('./list/intervention-list.component').then(m => m.InterventionListComponent)
   },
   {
+    path: 'planning',
+    loadComponent: () => import('./planning/intervention-planning.component').then(m => m.InterventionPlanningComponent)
+  },
+  {
+    path: 'bazefield-timeline',
+    loadComponent: () => import('./bazefield-timeline/bazefield-timeline.component').then(m => m.BazefieldTimelineComponent)
+  },
+  {
     path: 'new',
     loadComponent: () => import('./form/intervention-form.component').then(m => m.InterventionFormComponent)
   },

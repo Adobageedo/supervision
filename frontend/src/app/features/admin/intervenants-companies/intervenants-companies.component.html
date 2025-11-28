@@ -1,0 +1,192 @@
+<div class="admin-container">
+  <mat-toolbar color="primary">
+    <button mat-icon-button (click)="router.navigate(['/dashboard'])">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>⚙️ Paramètres - Intervenants & Entreprises</span>
+  </mat-toolbar>
+
+  <div class="admin-content">
+    <mat-tab-group>
+      <!-- Intervenants Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">people</mat-icon>
+          Intervenants
+        </ng-template>
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="intervenants" class="excel-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Nom *</th>
+                <td mat-cell *matCellDef="let intervenant">
+                  @if (editingIntervenantId === intervenant.id) {
+                    <input matInput [(ngModel)]="intervenant.name" class="cell-input" />
+                  } @else {
+                    {{ intervenant.name }}
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Surname Column -->
+              <ng-container matColumnDef="surname">
+                <th mat-header-cell *matHeaderCellDef>Prénom *</th>
+                <td mat-cell *matCellDef="let intervenant">
+                  @if (editingIntervenantId === intervenant.id) {
+                    <input matInput [(ngModel)]="intervenant.surname" class="cell-input" />
+                  } @else {
+                    {{ intervenant.surname }}
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Phone Column -->
+              <ng-container matColumnDef="phone">
+                <th mat-header-cell *matHeaderCellDef>Téléphone *</th>
+                <td mat-cell *matCellDef="let intervenant">
+                  @if (editingIntervenantId === intervenant.id) {
+                    <input matInput [(ngModel)]="intervenant.phone" class="cell-input" />
+                  } @else {
+                    {{ intervenant.phone }}
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Country Column -->
+              <ng-container matColumnDef="country">
+                <th mat-header-cell *matHeaderCellDef>Pays</th>
+                <td mat-cell *matCellDef="let intervenant">
+                  @if (editingIntervenantId === intervenant.id) {
+                    <input matInput [(ngModel)]="intervenant.country" class="cell-input" />
+                  } @else {
+                    {{ intervenant.country || '-' }}
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Company Column -->
+              <ng-container matColumnDef="company">
+                <th mat-header-cell *matHeaderCellDef>Entreprise</th>
+                <td mat-cell *matCellDef="let intervenant">
+                  @if (editingIntervenantId === intervenant.id) {
+                    <mat-select [(ngModel)]="intervenant.companyId" class="cell-select">
+                      <mat-option [value]="''">Aucune</mat-option>
+                      @for (company of companies; track company.id) {
+                        <mat-option [value]="company.id">{{ company.name }}</mat-option>
+                      }
+                    </mat-select>
+                  } @else {
+                    {{ getCompanyName(intervenant.companyId) }}
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let intervenant">
+                  @if (editingIntervenantId === intervenant.id) {
+                    <button mat-icon-button color="primary" (click)="updateIntervenant(intervenant)" matTooltip="Enregistrer">
+                      <mat-icon>save</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="cancelEdit()" matTooltip="Annuler">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  } @else {
+                    <button mat-icon-button (click)="startEditIntervenant(intervenant.id)" matTooltip="Modifier">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteIntervenant(intervenant.id)" matTooltip="Supprimer">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['name', 'surname', 'phone', 'country', 'company', 'actions']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['name', 'surname', 'phone', 'country', 'company', 'actions']"></tr>
+            </table>
+
+            <!-- Add New Row -->
+            <div class="add-row">
+              <input matInput [(ngModel)]="newIntervenant.name" placeholder="Nom *" class="add-input" />
+              <input matInput [(ngModel)]="newIntervenant.surname" placeholder="Prénom *" class="add-input" />
+              <input matInput [(ngModel)]="newIntervenant.phone" placeholder="Téléphone *" class="add-input" />
+              <input matInput [(ngModel)]="newIntervenant.country" placeholder="Pays" class="add-input" />
+              <mat-select [(ngModel)]="newIntervenant.companyId" placeholder="Entreprise" class="add-select">
+                <mat-option [value]="''">Aucune</mat-option>
+                @for (company of companies; track company.id) {
+                  <mat-option [value]="company.id">{{ company.name }}</mat-option>
+                }
+              </mat-select>
+              <button mat-raised-button color="primary" (click)="addIntervenant()" class="add-button">
+                <mat-icon>add</mat-icon>
+                Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Companies Tab -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">business</mat-icon>
+          Entreprises
+        </ng-template>
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="companies" class="excel-table">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Nom *</th>
+                <td mat-cell *matCellDef="let company">
+                  @if (editingCompanyId === company.id) {
+                    <input matInput [(ngModel)]="company.name" class="cell-input" />
+                  } @else {
+                    {{ company.name }}
+                  }
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let company">
+                  @if (editingCompanyId === company.id) {
+                    <button mat-icon-button color="primary" (click)="updateCompany(company)" matTooltip="Enregistrer">
+                      <mat-icon>save</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="cancelEdit()" matTooltip="Annuler">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  } @else {
+                    <button mat-icon-button (click)="startEditCompany(company.id)" matTooltip="Modifier">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteCompany(company.id)" matTooltip="Supprimer">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['name', 'actions']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['name', 'actions']"></tr>
+            </table>
+
+            <!-- Add New Row -->
+            <div class="add-row">
+              <input matInput [(ngModel)]="newCompany.name" placeholder="Nom de l'entreprise *" class="add-input-full" />
+              <button mat-raised-button color="primary" (click)="addCompany()" class="add-button">
+                <mat-icon>add</mat-icon>
+                Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

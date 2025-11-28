@@ -3,25 +3,27 @@ import { User } from './user.model';
 export interface Intervention {
   id: string;
   titre: string;
+  centraleType?: string;
   centrale: string;
   equipement: string;
-  typeEvenement: string | string[]; // Can be string or array
-  typeDysfonctionnement: string | string[]; // Can be string or array
-  dateDebut: Date;
-  dateFin?: Date;
-  dateIndisponibiliteDebut?: Date;
-  dateIndisponibiliteFin?: Date;
-  commentaires?: string;
-  perteProduction?: number;
-  perteCommunication?: number;
-  hasIntervention?: boolean;
+  entrepriseIntervenante?: string;
+  nombreIntervenant?: number;
+  intervenantEnregistre?: string;
+  dateRef?: Date;
+  debutInter?: Date;
+  finInter?: Date;
   hasPerteProduction?: boolean;
   hasPerteCommunication?: boolean;
+  indispoTerminee?: boolean;
+  dateIndisponibiliteDebut?: Date;
+  dateIndisponibiliteFin?: Date;
+  typeEvenement?: string | string[];
+  typeDysfonctionnement?: string | string[];
   rapportAttendu?: boolean;
   rapportRecu?: boolean;
+  commentaires?: string;
   isArchived: boolean;
   archivedAt?: Date;
-  intervenants: Intervenant[];
   createdBy?: User;
   createdById?: string;
   updatedBy?: User;
@@ -32,22 +34,13 @@ export interface Intervention {
   dureeIndisponibiliteHeures?: number;
 }
 
-export interface Intervenant {
-  id?: string;
-  nom: string;
-  prenom?: string;
-  type?: string;
-  entreprise?: string;
-  nomComplet?: string;
-}
-
 export interface InterventionFilters {
   centrale?: string;
   equipement?: string;
   typeEvenement?: string;
   typeDysfonctionnement?: string;
-  dateDebutFrom?: Date | string;
-  dateDebutTo?: Date | string;
+  dateRefFrom?: Date | string;
+  dateRefTo?: Date | string;
   isArchived?: boolean;
   search?: string;
   page?: number;

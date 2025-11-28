@@ -1,0 +1,208 @@
+<div class="planning-container">
+  <!-- Toolbar -->
+  <mat-toolbar color="primary" class="planning-toolbar">
+    <button mat-icon-button routerLink="/interventions">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Planning des Interventions</span>
+  </mat-toolbar>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <div class="view-controls">
+      <!-- View Mode Buttons -->
+      <mat-button-toggle-group [value]="viewMode" (valueChange)="changeViewMode($event)">
+        <mat-button-toggle value="day">
+          <mat-icon>today</mat-icon>
+          Jour
+        </mat-button-toggle>
+        <mat-button-toggle value="week">
+          <mat-icon>view_week</mat-icon>
+          Semaine
+        </mat-button-toggle>
+        <mat-button-toggle value="month">
+          <mat-icon>calendar_month</mat-icon>
+          Mois
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <!-- Navigation -->
+      <div class="navigation-controls">
+        <button mat-icon-button (click)="navigatePrevious()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button mat-raised-button (click)="goToToday()">Aujourd'hui</button>
+        <button mat-icon-button (click)="navigateNext()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <span class="date-label">{{ getDateRangeLabel() }}</span>
+      </div>
+
+    </div>
+
+    <div class="legend-controls">
+      <!-- Color Legend Toggle -->
+      <button mat-stroked-button (click)="toggleColorLegend()">
+        <mat-icon>palette</mat-icon>
+        Couleur par {{ colorLegendMode === 'centrale' ? 'Équipement' : 'Centrale' }}
+      </button>
+
+      <!-- Centrale Filter -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Centrales</mat-label>
+        <mat-select [(ngModel)]="selectedCentrales" multiple (selectionChange)="onCentraleSelectionChange()">
+          @for (centrale of filteredCentrales; track centrale) {
+            <mat-option [value]="centrale">{{ centrale }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Equipement Filter -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Équipements</mat-label>
+        <mat-select [(ngModel)]="selectedEquipements" multiple (selectionChange)="onEquipementSelectionChange()">
+          @for (equipement of filteredEquipements; track equipement) {
+            <mat-option [value]="equipement">{{ equipement }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Color Legend -->
+  <mat-card class="color-legend">
+    <mat-card-content>
+      <div class="legend-title">
+        <mat-icon>palette</mat-icon>
+        <span>Légende - {{ colorLegendMode === 'centrale' ? 'Centrales' : 'Équipements' }}</span>
+      </div>
+      <div class="legend-items">
+        @if (colorLegendMode === 'centrale') {
+          @for (entry of centraleColors | keyvalue; track entry.key) {
+            <div class="legend-item">
+              <div class="legend-color" [style.background-color]="entry.value"></div>
+              <span>{{ entry.key }}</span>
+            </div>
+          }
+        } @else {
+          @for (entry of equipementColors | keyvalue; track entry.key) {
+            <div class="legend-item">
+              <div class="legend-color" [style.background-color]="entry.value"></div>
+              <span>{{ entry.key }}</span>
+            </div>
+          }
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Calendar View -->
+  <div class="calendar-view">
+    @if (viewMode === 'day') {
+      <!-- Day View -->
+      <div class="day-view">
+        <div class="day-header">
+          <h2>{{ startDate | date:'EEEE d MMMM yyyy':'':'fr' }}</h2>
+        </div>
+        <div class="events-list">
+          @for (event of calendarEvents; track event.intervention.id) {
+            <mat-card class="event-card" 
+                      [style.border-left-color]="event.color"
+                      (click)="viewInterventionDetails(event.intervention)">
+              <mat-card-content>
+                <div class="event-header">
+                  <h3>{{ event.intervention.titre }}</h3>
+                  <span class="event-time">
+                    {{ event.startDate | date:'HH:mm' }} - 
+                    {{ event.endDate | date:'HH:mm' }}
+                  </span>
+                </div>
+                <div class="event-details">
+                  <div class="event-detail-item">
+                    <strong>Centrale:</strong>
+                    <span>{{ event.intervention.centrale }}</span>
+                  </div>
+                  <div class="event-detail-item">
+                    <strong>Équipement:</strong>
+                    <span>{{ event.intervention.equipement }}</span>
+                  </div>
+                  <div class="event-detail-item">
+                    <strong>Statut:</strong>
+                    <span>{{ getColumnValue(event.intervention, 'statut') }}</span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+          @if (calendarEvents.length === 0) {
+            <div class="no-events">
+              <mat-icon>event_busy</mat-icon>
+              <p>Aucune intervention prévue</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (viewMode === 'week') {
+      <!-- Week View -->
+      <div class="week-view">
+        <div class="week-grid">
+          @for (day of getWeekDays(); track day.getTime()) {
+            <div class="day-column" [class.today]="isToday(day)">
+              <div class="day-header">
+                <div class="day-name">{{ day | date:'EEE':'':'fr' }}</div>
+                <div class="day-number">{{ day | date:'d' }}</div>
+              </div>
+              <div class="day-events">
+                @for (event of getEventsForDay(day); track event.intervention.id) {
+                  <div class="event-item" 
+                       [style.background-color]="event.color"
+                       (click)="viewInterventionDetails(event.intervention)"
+                       [matTooltip]="event.intervention.titre">
+                    <div class="event-title">{{ event.intervention.titre }}</div>
+                    <div class="event-time">{{ event.startDate | date:'HH:mm' }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (viewMode === 'month') {
+      <!-- Month View -->
+      <div class="month-view">
+        <div class="month-grid">
+          <!-- Day headers -->
+          <div class="day-header">Lun</div>
+          <div class="day-header">Mar</div>
+          <div class="day-header">Mer</div>
+          <div class="day-header">Jeu</div>
+          <div class="day-header">Ven</div>
+          <div class="day-header">Sam</div>
+          <div class="day-header">Dim</div>
+
+          <!-- Days -->
+          @for (day of getMonthDays(); track day.getTime()) {
+            <div class="day-cell" 
+                 [class.today]="isToday(day)"
+                 [class.other-month]="!isCurrentMonth(day)">
+              <div class="day-number">{{ day.getDate() }}</div>
+              <div class="day-events">
+                @for (event of getEventsForDay(day); track event.intervention.id) {
+                  <div class="event-dot" 
+                       [style.background-color]="event.color"
+                       (click)="viewInterventionDetails(event.intervention)"
+                       [matTooltip]="event.intervention.titre">
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

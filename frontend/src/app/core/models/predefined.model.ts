@@ -11,6 +11,8 @@ export interface PredefinedValue {
   type: PredefinedType;
   value: string;
   description?: string;
+  nickname?: string;
+  equipmentType?: string;
   parentId?: string;
   isActive: boolean;
   sortOrder: number;

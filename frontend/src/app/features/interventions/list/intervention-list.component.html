@@ -20,6 +20,16 @@
           </button>
         }
         
+        <button mat-raised-button (click)="router.navigate(['/interventions/planning'])" class="action-btn">
+          <mat-icon>calendar_month</mat-icon>
+          Planning
+        </button>
+        
+        <button mat-raised-button (click)="router.navigate(['/interventions/bazefield-timeline'])" class="action-btn">
+          <mat-icon>timeline</mat-icon>
+          Bazefield Timeline
+        </button>
+        
         <button mat-raised-button color="accent" (click)="exportToCsv()" class="action-btn">
           <mat-icon>download</mat-icon>
           Exporter CSV
@@ -88,7 +98,7 @@
                 </mat-menu>
               </th>
               <td mat-cell *matCellDef="let row" class="cell-content">
-                <mat-chip class="centrale-chip">{{ row.centrale }}</mat-chip>
+                <mat-chip class="centrale-chip" [style.background-color]="getCentraleColor(row.centrale)">{{ row.centrale }}</mat-chip>
               </td>
             </ng-container>
 
@@ -214,7 +224,7 @@
                 <span>Début Interv.</span>
               </th>
               <td mat-cell *matCellDef="let row" class="cell-content">
-                @if (row.intervenants && row.intervenants.length > 0 && row.dateDebut) {
+                @if (row.interventionIntervenants && row.interventionIntervenants.length > 0 && row.dateDebut) {
                   {{ row.dateDebut | date:'dd/MM/yyyy HH:mm' }}
                 }
               </td>

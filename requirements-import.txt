@@ -1,0 +1,5 @@
+# Python dependencies for CSV import script
+# Install with: pip install -r requirements-import.txt
+
+psycopg2-binary>=2.9.9
+python-dotenv>=1.0.0

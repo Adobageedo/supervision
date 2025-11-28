@@ -63,6 +63,14 @@ export class InterventionListComponent implements OnInit {
   columnFilters: Map<string, ColumnFilter> = new Map();
   activeFiltersCount = 0;
 
+  // Color mapping for centrales
+  centraleColors: Map<string, string> = new Map();
+  private colors = [
+    '#0969da', '#1f883d', '#cf222e', '#8250df', '#fb8500',
+    '#0550ae', '#116329', '#a40e26', '#622cbc', '#d4a72c',
+    '#218bff', '#26a641', '#f85149', '#a371f7', '#ffc107'
+  ];
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -101,12 +109,14 @@ export class InterventionListComponent implements OnInit {
             console.log('🔍 [LIST] First intervention:', this.allInterventions[0]);
             console.log('🔍 [LIST] typeEvenement:', this.allInterventions[0].typeEvenement, typeof this.allInterventions[0].typeEvenement);
             console.log('🔍 [LIST] typeDysfonctionnement:', this.allInterventions[0].typeDysfonctionnement, typeof this.allInterventions[0].typeDysfonctionnement);
-            console.log('🔍 [LIST] hasIntervention:', this.allInterventions[0].hasIntervention);
             console.log('🔍 [LIST] hasPerteProduction:', this.allInterventions[0].hasPerteProduction);
             console.log('🔍 [LIST] hasPerteCommunication:', this.allInterventions[0].hasPerteCommunication);
           }
           
           this.dataSource.data = this.allInterventions;
+          
+          // Assign colors to centrales
+          this.assignCentraleColors();
           
           // Setup table features
           setTimeout(() => {
@@ -120,6 +130,17 @@ export class InterventionListComponent implements OnInit {
         this.snackBar.open('Erreur lors du chargement des interventions', 'Fermer', { duration: 3000 });
       }
     });
+  }
+
+  assignCentraleColors(): void {
+    const centrales = [...new Set(this.allInterventions.map(i => i.centrale))];
+    centrales.forEach((centrale, index) => {
+      this.centraleColors.set(centrale, this.colors[index % this.colors.length]);
+    });
+  }
+
+  getCentraleColor(centrale: string): string {
+    return this.centraleColors.get(centrale) || '#6c757d';
   }
 
   setupColumnFilters(): void {
@@ -243,33 +264,27 @@ export class InterventionListComponent implements OnInit {
   getStatutLabel(intervention: Intervention): string {
     if (intervention.isArchived) return 'Archivée';
     // Closed if either intervention finished OR indisponibilité finished
-    if (intervention.dateFin || intervention.dateIndisponibiliteFin) return 'Terminée';
+    if (intervention.finInter || intervention.dateIndisponibiliteFin) return 'Terminée';
     return 'En cours';
   }
 
   getStatutColor(intervention: Intervention): string {
     if (intervention.isArchived) return 'archived';
     // Closed if either intervention finished OR indisponibilité finished
-    if (intervention.dateFin || intervention.dateIndisponibiliteFin) return 'completed';
+    if (intervention.finInter || intervention.dateIndisponibiliteFin) return 'completed';
     return 'ongoing';
   }
   
   getIntervenantName(intervention: Intervention): string {
-    return intervention.intervenants && intervention.intervenants.length > 0 
-      ? intervention.intervenants[0].nom 
-      : '';
+    return intervention.intervenantEnregistre || '';
   }
   
   getIntervenantCompany(intervention: Intervention): string {
-    return intervention.intervenants && intervention.intervenants.length > 0 
-      ? (intervention.intervenants[0].entreprise || '') 
-      : '';
+    return intervention.entrepriseIntervenante || '';
   }
   
   getIntervenantCount(intervention: Intervention): number | null {
-    return intervention.intervenants && intervention.intervenants.length > 0 
-      ? intervention.intervenants.length 
-      : null;
+    return intervention.nombreIntervenant || null;
   }
   
   getTypeEvenementArray(intervention: Intervention): string[] {

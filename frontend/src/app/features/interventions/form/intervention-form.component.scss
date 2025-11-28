@@ -5,7 +5,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fafbfc;
+  background: white;
 }
 
 .form-content {
@@ -29,8 +29,9 @@ form {
 .form-section {
   margin-bottom: $spacing-xxl;
   padding: $spacing-xl;
-  background: #f6f8fa;
+  background: white;
   border-radius: $border-radius-md;
+  border: 1px solid #e1e4e8;
   border-left: 3px solid #0969da;
 
   h3 {

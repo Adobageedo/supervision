@@ -1,0 +1,3 @@
+id,email,password,firstName,lastName,role,isActive,refreshToken,lastLogin,createdAt,updatedAt
+1,admin@supervision.com,Admin123!,Admin,User,admin,true,,,,
+2,operator@supervision.com,Admin123!,John,Doe,user,true,,,,

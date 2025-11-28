@@ -1,0 +1,210 @@
+<div class="timeline-container">
+  <!-- Toolbar -->
+  <mat-toolbar color="primary" class="timeline-toolbar">
+    <button mat-icon-button (click)="backToInterventions()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Bazefield Timeline</span>
+    <span class="spacer"></span>
+    <span class="granularity-info">
+      {{ displayConfig?.granularity === 'minute' ? 'Vue par 15 minutes' : 
+         displayConfig?.granularity === 'hour' ? 'Vue horaire' : 
+         displayConfig?.granularity === 'day' ? 'Vue journalière' : 
+         'Vue mensuelle' }}
+    </span>
+  </mat-toolbar>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <div class="time-controls">
+      <!-- Time Range Buttons -->
+      <mat-button-toggle-group [value]="timeRange" (valueChange)="changeTimeRange($event)">
+        <mat-button-toggle value="last7days">
+          7 derniers jours
+        </mat-button-toggle>
+        <mat-button-toggle value="last30days">
+          30 derniers jours
+        </mat-button-toggle>
+        <mat-button-toggle value="currentMonth">
+          Mois en cours
+        </mat-button-toggle>
+        <mat-button-toggle value="previousMonth">
+          Mois précédent
+        </mat-button-toggle>
+        <mat-button-toggle value="custom">
+          <mat-icon>date_range</mat-icon>
+          Personnalisé
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <span class="date-label">{{ getTimeRangeLabel() }}</span>
+      
+      <!-- Zoom Controls -->
+      <div class="zoom-controls">
+        <button mat-icon-button (click)="zoomOut()" [disabled]="zoomLevel <= 0.25" matTooltip="Zoom arrière">
+          <mat-icon>zoom_out</mat-icon>
+        </button>
+        <span class="zoom-label">{{ (zoomLevel * 100) | number:'1.0-0' }}%</span>
+        <button mat-icon-button (click)="zoomIn()" [disabled]="zoomLevel >= 3" matTooltip="Zoom avant">
+          <mat-icon>zoom_in</mat-icon>
+        </button>
+        <button mat-icon-button (click)="resetZoom()" matTooltip="Réinitialiser zoom">
+          <mat-icon>restart_alt</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-controls">
+      <!-- Centrale Filter -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Centrales</mat-label>
+        <mat-select [(ngModel)]="selectedCentrales" multiple (selectionChange)="onCentraleSelectionChange()">
+          @for (centrale of filteredCentrales; track centrale) {
+            <mat-option [value]="centrale">{{ centrale }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Equipement Filter -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Équipements</mat-label>
+        <mat-select [(ngModel)]="selectedEquipements" multiple (selectionChange)="onEquipementSelectionChange()">
+          @for (equipement of filteredEquipements; track equipement) {
+            <mat-option [value]="equipement">{{ equipement }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Custom Date Picker -->
+  @if (showCustomDatePicker) {
+    <mat-card class="custom-date-picker">
+      <mat-card-content>
+        <div class="date-picker-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Date de début</mat-label>
+            <input matInput [matDatepicker]="startPicker" [formControl]="customStartDate">
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date de fin</mat-label>
+            <input matInput [matDatepicker]="endPicker" [formControl]="customEndDate">
+            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" (click)="applyCustomDateRange()">
+            <mat-icon>check</mat-icon>
+            Appliquer
+          </button>
+          <button mat-stroked-button (click)="showCustomDatePicker = false">
+            <mat-icon>close</mat-icon>
+            Annuler
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Legend -->
+  <mat-card class="legend-card">
+    <mat-card-content>
+      <div class="legend-title">
+        <mat-icon>info</mat-icon>
+        <span>Légende</span>
+      </div>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-color" [style.background-color]="getStatusColor('available')"></div>
+          <span>Disponible (aucune intervention)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" [style.background-color]="getStatusColor('intervention')"></div>
+          <span>Intervention uniquement</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" [style.background-color]="getStatusColor('indispo')"></div>
+          <span>Indisponibilité (perte prod/com)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" [style.background-color]="getStatusColor('both')"></div>
+          <span>Intervention + Indisponibilité</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Timeline -->
+  <div class="timeline-content">
+    <div class="timeline-grid">
+      <!-- Header Row with Grouping -->
+      <div class="timeline-header">
+        <div class="equipment-header">
+          <div class="equipment-labels">
+            <span class="centrale-label">Centrale</span>
+            <span class="separator">/</span>
+            <span class="equipement-label">Équipement</span>
+          </div>
+        </div>
+        <div class="timeline-header-container">
+          @for (group of groupedHeaders; track $index) {
+            <div class="header-group">
+              @if (group.day) {
+                <div class="group-header day-header">{{ group.day }}</div>
+              }
+              @if (group.month) {
+                <div class="group-header month-header">{{ group.month }}</div>
+              }
+              <div class="slot-headers">
+                @for (slot of group.slots; track slot.date.getTime()) {
+                  <div class="timeslot-header" 
+                       [class.today]="isToday(slot.date)"
+                       [style.min-width.px]="displayConfig.cellWidth"
+                       [style.width.px]="displayConfig.cellWidth">
+                    <div class="header-label">{{ slot.label }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Timeline Rows with Continuous Blocks -->
+      @for (row of timelineRows; track row.centrale + row.equipement) {
+        <div class="timeline-row">
+          <div class="equipment-cell">
+            <span class="centrale-name">{{ row.centrale }}</span>
+            <span class="separator">/</span>
+            <span class="equipement-name">{{ row.equipement }}</span>
+          </div>
+          <div class="timeline-track-container">
+            <div class="timeline-track" [style.width.px]="timelineWidth">
+              @for (block of row.blocks; track $index) {
+                <div class="intervention-block" 
+                     [class.clickable]="block.interventions.length > 0"
+                     [style.background-color]="getStatusColor(block.status)"
+                     [style.left.px]="block.leftPosition"
+                     [style.width.px]="block.width"
+                     [matTooltip]="getTooltipText(block)"
+                     matTooltipClass="multiline-tooltip"
+                     (click)="viewDayDetails(block)">
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (timelineRows.length === 0) {
+        <div class="no-data">
+          <mat-icon>info</mat-icon>
+          <p>Aucun équipement à afficher</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

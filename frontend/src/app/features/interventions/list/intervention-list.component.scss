@@ -170,8 +170,8 @@ mat-chip {
   min-height: 20px;
 
   &.centrale-chip {
-    background: #0969da;
     color: $white;
+    font-weight: 500;
   }
 
   &.type-chip {

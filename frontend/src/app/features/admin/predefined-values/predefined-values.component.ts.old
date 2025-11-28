@@ -1,0 +1,650 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { MaterialModule } from '../../../shared/material.module';
+import { FormsModule } from '@angular/forms';
+import { PredefinedService } from '../../../core/services/predefined.service';
+import { IntervenantService } from '../../../core/services/intervenant.service';
+import { CompanyService } from '../../../core/services/company.service';
+import { PredefinedValue, PredefinedType, PredefinedValuesMap } from '../../../core/models/predefined.model';
+import { Intervenant } from '../../../core/models/intervenant.model';
+import { Company } from '../../../core/models/company.model';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { ValueDialogComponent } from './value-dialog.component';
+
+@Component({
+  selector: 'app-predefined-values',
+  standalone: true,
+  imports: [CommonModule, MaterialModule, FormsModule],
+  styleUrls: ['./predefined-values.component.scss'],
+  template: `
+    <div class="admin-container">
+      <mat-toolbar color="primary">
+        <button mat-icon-button (click)="router.navigate(['/dashboard'])">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <span>⚙️ Paramètres - Valeurs Prédéfinies</span>
+      </mat-toolbar>
+
+      <div class="admin-content">
+        <mat-tab-group>
+          <!-- Centrales Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">location_city</mat-icon>
+              Centrales
+            </ng-template>
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.CENTRALE)">
+                <mat-icon>add</mat-icon>
+                Ajouter une centrale
+              </button>
+              
+              @if (values[predefinedType.CENTRALE] && values[predefinedType.CENTRALE].length > 0) {
+                <div class="value-grid">
+                  @for (value of values[predefinedType.CENTRALE]; track value.id) {
+                    <mat-card class="value-card">
+                      <mat-card-header>
+                        <mat-card-title>{{ value.value }}</mat-card-title>
+                        @if (!value.isActive) {
+                          <mat-chip class="inactive-chip">Inactif</mat-chip>
+                        }
+                      </mat-card-header>
+                      <mat-card-content>
+                        @if (value.description) {
+                          <p class="description">{{ value.description }}</p>
+                        }
+                        <p class="equipment-count">{{ getEquipmentCount(value.id) }} équipement(s)</p>
+                      </mat-card-content>
+                      <mat-card-actions>
+                        <button mat-icon-button (click)="openDialog(predefinedType.CENTRALE, value)" matTooltip="Modifier">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </mat-card-actions>
+                    </mat-card>
+                  }
+                </div>
+              } @else {
+                <p class="empty-message">Aucune centrale configurée</p>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- Équipements Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">settings</mat-icon>
+              Équipements
+            </ng-template>
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.EQUIPEMENT)">
+                <mat-icon>add</mat-icon>
+                Ajouter un équipement
+              </button>
+              
+              @if (values[predefinedType.EQUIPEMENT] && values[predefinedType.EQUIPEMENT].length > 0) {
+                <div class="value-grid">
+                  @for (value of values[predefinedType.EQUIPEMENT]; track value.id) {
+                    <mat-card class="value-card">
+                      <mat-card-header>
+                        <mat-card-title>{{ value.value }}</mat-card-title>
+                        @if (!value.isActive) {
+                          <mat-chip class="inactive-chip">Inactif</mat-chip>
+                        }
+                      </mat-card-header>
+                      <mat-card-content>
+                        @if (value.description) {
+                          <p class="description">{{ value.description }}</p>
+                        }
+                        @if (value.parentId) {
+                          <p class="parent-info">📍 {{ getCentraleName(value.parentId) }}</p>
+                        }
+                      </mat-card-content>
+                      <mat-card-actions>
+                        <button mat-icon-button (click)="openDialog(predefinedType.EQUIPEMENT, value)" matTooltip="Modifier">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </mat-card-actions>
+                    </mat-card>
+                  }
+                </div>
+              } @else {
+                <p class="empty-message">Aucun équipement configuré</p>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- Types d'événements Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">event</mat-icon>
+              Types d'événements
+            </ng-template>
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.TYPE_EVENEMENT)">
+                <mat-icon>add</mat-icon>
+                Ajouter un type
+              </button>
+              
+              @if (values[predefinedType.TYPE_EVENEMENT] && values[predefinedType.TYPE_EVENEMENT].length > 0) {
+                <div class="value-grid">
+                  @for (value of values[predefinedType.TYPE_EVENEMENT]; track value.id) {
+                    <mat-card class="value-card">
+                      <mat-card-header>
+                        <mat-card-title>{{ value.value }}</mat-card-title>
+                        @if (!value.isActive) {
+                          <mat-chip class="inactive-chip">Inactif</mat-chip>
+                        }
+                      </mat-card-header>
+                      <mat-card-content>
+                        @if (value.description) {
+                          <p class="description">{{ value.description }}</p>
+                        }
+                      </mat-card-content>
+                      <mat-card-actions>
+                        <button mat-icon-button (click)="openDialog(predefinedType.TYPE_EVENEMENT, value)" matTooltip="Modifier">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </mat-card-actions>
+                    </mat-card>
+                  }
+                </div>
+              } @else {
+                <p class="empty-message">Aucun type d'événement configuré</p>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- Types de dysfonctionnements Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">warning</mat-icon>
+              Dysfonctionnements
+            </ng-template>
+            <div class="tab-content">
+              <button mat-raised-button color="primary" class="add-button" (click)="openDialog(predefinedType.TYPE_DYSFONCTIONNEMENT)">
+                <mat-icon>add</mat-icon>
+                Ajouter un type
+              </button>
+              
+              @if (values[predefinedType.TYPE_DYSFONCTIONNEMENT] && values[predefinedType.TYPE_DYSFONCTIONNEMENT].length > 0) {
+                <div class="value-grid">
+                  @for (value of values[predefinedType.TYPE_DYSFONCTIONNEMENT]; track value.id) {
+                    <mat-card class="value-card">
+                      <mat-card-header>
+                        <mat-card-title>{{ value.value }}</mat-card-title>
+                        @if (!value.isActive) {
+                          <mat-chip class="inactive-chip">Inactif</mat-chip>
+                        }
+                      </mat-card-header>
+                      <mat-card-content>
+                        @if (value.description) {
+                          <p class="description">{{ value.description }}</p>
+                        }
+                      </mat-card-content>
+                      <mat-card-actions>
+                        <button mat-icon-button (click)="openDialog(predefinedType.TYPE_DYSFONCTIONNEMENT, value)" matTooltip="Modifier">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteValue(value)" matTooltip="Supprimer">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </mat-card-actions>
+                    </mat-card>
+                  }
+                </div>
+              } @else {
+                <p class="empty-message">Aucun type de dysfonctionnement configuré</p>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- Intervenants Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">people</mat-icon>
+              Intervenants
+            </ng-template>
+            <div class="tab-content">
+              <div class="table-container">
+                <table mat-table [dataSource]="intervenants" class="excel-table">
+                  <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>Nom *</th>
+                    <td mat-cell *matCellDef="let intervenant">
+                      @if (editingIntervenantId === intervenant.id) {
+                        <input matInput [(ngModel)]="intervenant.name" class="cell-input" />
+                      } @else {
+                        {{ intervenant.name }}
+                      }
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="surname">
+                    <th mat-header-cell *matHeaderCellDef>Prénom *</th>
+                    <td mat-cell *matCellDef="let intervenant">
+                      @if (editingIntervenantId === intervenant.id) {
+                        <input matInput [(ngModel)]="intervenant.surname" class="cell-input" />
+                      } @else {
+                        {{ intervenant.surname }}
+                      }
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="phone">
+                    <th mat-header-cell *matHeaderCellDef>Téléphone *</th>
+                    <td mat-cell *matCellDef="let intervenant">
+                      @if (editingIntervenantId === intervenant.id) {
+                        <input matInput [(ngModel)]="intervenant.phone" class="cell-input" />
+                      } @else {
+                        {{ intervenant.phone }}
+                      }
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="country">
+                    <th mat-header-cell *matHeaderCellDef>Pays</th>
+                    <td mat-cell *matCellDef="let intervenant">
+                      @if (editingIntervenantId === intervenant.id) {
+                        <input matInput [(ngModel)]="intervenant.country" class="cell-input" />
+                      } @else {
+                        {{ intervenant.country || '-' }}
+                      }
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="company">
+                    <th mat-header-cell *matHeaderCellDef>Entreprise</th>
+                    <td mat-cell *matCellDef="let intervenant">
+                      @if (editingIntervenantId === intervenant.id) {
+                        <mat-select [(ngModel)]="intervenant.companyId" class="cell-select">
+                          <mat-option [value]="''">Aucune</mat-option>
+                          @for (company of companies; track company.id) {
+                            <mat-option [value]="company.id">{{ company.name }}</mat-option>
+                          }
+                        </mat-select>
+                      } @else {
+                        {{ getCompanyName(intervenant.companyId) }}
+                      }
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let intervenant">
+                      @if (editingIntervenantId === intervenant.id) {
+                        <button mat-icon-button color="primary" (click)="updateIntervenant(intervenant)" matTooltip="Enregistrer">
+                          <mat-icon>save</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="cancelEdit()" matTooltip="Annuler">
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      } @else {
+                        <button mat-icon-button (click)="startEditIntervenant(intervenant.id)" matTooltip="Modifier">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteIntervenant(intervenant.id)" matTooltip="Supprimer">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="['name', 'surname', 'phone', 'country', 'company', 'actions']"></tr>
+                  <tr mat-row *matRowDef="let row; columns: ['name', 'surname', 'phone', 'country', 'company', 'actions']"></tr>
+                </table>
+
+                <div class="add-row">
+                  <input matInput [(ngModel)]="newIntervenant.name" placeholder="Nom *" class="add-input" />
+                  <input matInput [(ngModel)]="newIntervenant.surname" placeholder="Prénom *" class="add-input" />
+                  <input matInput [(ngModel)]="newIntervenant.phone" placeholder="Téléphone *" class="add-input" />
+                  <input matInput [(ngModel)]="newIntervenant.country" placeholder="Pays" class="add-input" />
+                  <mat-select [(ngModel)]="newIntervenant.companyId" placeholder="Entreprise" class="add-select">
+                    <mat-option [value]="''">Aucune</mat-option>
+                    @for (company of companies; track company.id) {
+                      <mat-option [value]="company.id">{{ company.name }}</mat-option>
+                    }
+                  </mat-select>
+                  <button mat-raised-button color="primary" (click)="addIntervenant()" class="add-button">
+                    <mat-icon>add</mat-icon>
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Companies Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">business</mat-icon>
+              Entreprises
+            </ng-template>
+            <div class="tab-content">
+              <div class="table-container">
+                <table mat-table [dataSource]="companies" class="excel-table">
+                  <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>Nom *</th>
+                    <td mat-cell *matCellDef="let company">
+                      @if (editingCompanyId === company.id) {
+                        <input matInput [(ngModel)]="company.name" class="cell-input" />
+                      } @else {
+                        {{ company.name }}
+                      }
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let company">
+                      @if (editingCompanyId === company.id) {
+                        <button mat-icon-button color="primary" (click)="updateCompany(company)" matTooltip="Enregistrer">
+                          <mat-icon>save</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="cancelEdit()" matTooltip="Annuler">
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      } @else {
+                        <button mat-icon-button (click)="startEditCompany(company.id)" matTooltip="Modifier">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteCompany(company.id)" matTooltip="Supprimer">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="['name', 'actions']"></tr>
+                  <tr mat-row *matRowDef="let row; columns: ['name', 'actions']"></tr>
+                </table>
+
+                <div class="add-row">
+                  <input matInput [(ngModel)]="newCompany.name" placeholder="Nom de l'entreprise *" class="add-input-full" />
+                  <button mat-raised-button color="primary" (click)="addCompany()" class="add-button">
+                    <mat-icon>add</mat-icon>
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+    </div>
+  `
+})
+export class PredefinedValuesComponent implements OnInit {
+  values: PredefinedValuesMap = {} as PredefinedValuesMap;
+  predefinedType = PredefinedType;
+  
+  // Intervenants and Companies
+  intervenants: Intervenant[] = [];
+  companies: Company[] = [];
+  
+  newIntervenant: Partial<Intervenant> = {
+    name: '',
+    surname: '',
+    phone: '',
+    country: '',
+    companyId: '',
+    isActive: true
+  };
+  
+  newCompany: Partial<Company> = {
+    name: '',
+    isActive: true
+  };
+  
+  editingIntervenantId: string | null = null;
+  editingCompanyId: string | null = null;
+
+  constructor(
+    private predefinedService: PredefinedService,
+    private intervenantService: IntervenantService,
+    private companyService: CompanyService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+    public router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.loadValues();
+    this.loadIntervenants();
+    this.loadCompanies();
+  }
+
+  loadValues(): void {
+    this.predefinedService.getAllValues().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.values = response.data.values;
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur de chargement', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+  
+  loadIntervenants(): void {
+    this.intervenantService.getIntervenants({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.intervenants = response.data.intervenants;
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur de chargement des intervenants', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  loadCompanies(): void {
+    this.companyService.getCompanies({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.companies = response.data.companies;
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur de chargement des entreprises', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  openDialog(type: PredefinedType, value?: PredefinedValue): void {
+    const dialogRef = this.dialog.open(ValueDialogComponent, {
+      width: '500px',
+      data: { value, type, allValues: this.values }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.id) {
+          this.updateValue(result);
+        } else {
+          this.createValue(result);
+        }
+      }
+    });
+  }
+
+  createValue(data: Partial<PredefinedValue>): void {
+    this.predefinedService.createValue(data).subscribe({
+      next: () => {
+        this.snackBar.open('Valeur créée avec succès', 'Fermer', { duration: 3000 });
+        this.loadValues();
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la création', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateValue(data: PredefinedValue): void {
+    this.predefinedService.updateValue(data.id, data).subscribe({
+      next: () => {
+        this.snackBar.open('Valeur modifiée avec succès', 'Fermer', { duration: 3000 });
+        this.loadValues();
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteValue(value: PredefinedValue): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer "${value.value}" ?`)) {
+      this.predefinedService.deleteValue(value.id).subscribe({
+        next: () => {
+          this.snackBar.open('Valeur supprimée avec succès', 'Fermer', { duration: 3000 });
+          this.loadValues();
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  getEquipmentCount(centraleId: string): number {
+    return this.values[PredefinedType.EQUIPEMENT]?.filter(eq => eq.parentId === centraleId).length || 0;
+  }
+
+  getCentraleName(centraleId: string): string {
+    return this.values[PredefinedType.CENTRALE]?.find(c => c.id === centraleId)?.value || 'Inconnue';
+  }
+  
+  // Intervenant methods
+  addIntervenant(): void {
+    if (!this.newIntervenant.name || !this.newIntervenant.surname || !this.newIntervenant.phone) {
+      this.snackBar.open('Nom, prénom et téléphone sont requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    this.intervenantService.createIntervenant(this.newIntervenant).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.intervenants.push(response.data.intervenant);
+          this.newIntervenant = { name: '', surname: '', phone: '', country: '', companyId: '', isActive: true };
+          this.snackBar.open('Intervenant ajouté', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateIntervenant(intervenant: Intervenant): void {
+    this.intervenantService.updateIntervenant(intervenant.id, intervenant).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.editingIntervenantId = null;
+          this.snackBar.open('Intervenant modifié', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteIntervenant(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet intervenant ?')) {
+      this.intervenantService.deleteIntervenant(id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.intervenants = this.intervenants.filter(i => i.id !== id);
+            this.snackBar.open('Intervenant supprimé', 'Fermer', { duration: 2000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+  
+  // Company methods
+  addCompany(): void {
+    if (!this.newCompany.name) {
+      this.snackBar.open('Le nom est requis', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    this.companyService.createCompany(this.newCompany).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.companies.push(response.data.company);
+          this.newCompany = { name: '', isActive: true };
+          this.snackBar.open('Entreprise ajoutée', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'ajout', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  updateCompany(company: Company): void {
+    this.companyService.updateCompany(company.id, company).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.editingCompanyId = null;
+          this.snackBar.open('Entreprise modifiée', 'Fermer', { duration: 2000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors de la modification', 'Fermer', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteCompany(id: string): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette entreprise ?')) {
+      this.companyService.deleteCompany(id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.companies = this.companies.filter(c => c.id !== id);
+            this.snackBar.open('Entreprise supprimée', 'Fermer', { duration: 2000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  startEditIntervenant(id: string): void {
+    this.editingIntervenantId = id;
+  }
+
+  startEditCompany(id: string): void {
+    this.editingCompanyId = id;
+  }
+
+  cancelEdit(): void {
+    this.editingIntervenantId = null;
+    this.editingCompanyId = null;
+    this.loadIntervenants();
+    this.loadCompanies();
+  }
+
+  getCompanyName(companyId?: string): string {
+    if (!companyId) return '-';
+    const company = this.companies.find(c => c.id === companyId);
+    return company ? company.name : '-';
+  }
+}

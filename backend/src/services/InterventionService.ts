@@ -11,10 +11,8 @@ export interface InterventionFilters {
   equipement?: string;
   typeEvenement?: string;
   typeDysfonctionnement?: string;
-  dateDebutFrom?: Date;
-  dateDebutTo?: Date;
-  dateFinFrom?: Date;
-  dateFinTo?: Date;
+  dateRefFrom?: Date;
+  dateRefTo?: Date;
   isArchived?: boolean;
   search?: string;
 }
@@ -33,7 +31,7 @@ export class InterventionService {
 
   async createIntervention(
     data: Partial<Intervention>,
-    intervenants: Partial<Intervenant>[],
+    intervenants: Partial<Intervenant>[] | any[],
     userId: string
   ): Promise<Intervention> {
     // Créer l'intervention
@@ -45,16 +43,11 @@ export class InterventionService {
     // Sauvegarder l'intervention
     const savedIntervention = await this.interventionRepository.save(intervention);
 
-    // Créer les intervenants
-    if (intervenants && intervenants.length > 0) {
-      const intervenantsToCreate = intervenants.map((int) =>
-        this.intervenantRepository.create({
-          ...int,
-          interventionId: savedIntervention.id,
-        })
-      );
-      await this.intervenantRepository.save(intervenantsToCreate);
-    }
+    // Intervenant data is now stored directly in the intervention record:
+    // - entrepriseIntervenante (company name)
+    // - intervenantEnregistre (intervenant details)
+    // - nombreIntervenant (count)
+    // No junction table needed anymore
 
     // Log l'action
     await this.auditService.log({
@@ -72,7 +65,7 @@ export class InterventionService {
   async getInterventionById(id: string): Promise<Intervention> {
     const intervention = await this.interventionRepository.findOne({
       where: { id },
-      relations: ['intervenants', 'createdBy', 'updatedBy'],
+      relations: ['createdBy', 'updatedBy'],
     });
 
     if (!intervention) {
@@ -86,7 +79,7 @@ export class InterventionService {
     filters: InterventionFilters = {},
     pagination: PaginationOptions = { page: 1, limit: 50 }
   ): Promise<{ interventions: Intervention[]; total: number; pages: number }> {
-    const { page, limit, sortBy = 'dateDebut', sortOrder = 'DESC' } = pagination;
+    const { page, limit, sortBy = 'createdAt', sortOrder = 'DESC' } = pagination;
 
     // Construction des filtres
     const where: FindOptionsWhere<Intervention> = {};
@@ -112,18 +105,17 @@ export class InterventionService {
     }
 
     // Filtres de dates
-    if (filters.dateDebutFrom && filters.dateDebutTo) {
-      where.dateDebut = Between(filters.dateDebutFrom, filters.dateDebutTo);
-    } else if (filters.dateDebutFrom) {
-      where.dateDebut = MoreThanOrEqual(filters.dateDebutFrom);
-    } else if (filters.dateDebutTo) {
-      where.dateDebut = LessThanOrEqual(filters.dateDebutTo);
+    if (filters.dateRefFrom && filters.dateRefTo) {
+      where.dateRef = Between(filters.dateRefFrom, filters.dateRefTo);
+    } else if (filters.dateRefFrom) {
+      where.dateRef = MoreThanOrEqual(filters.dateRefFrom);
+    } else if (filters.dateRefTo) {
+      where.dateRef = LessThanOrEqual(filters.dateRefTo);
     }
 
     // Recherche textuelle
     let queryBuilder = this.interventionRepository
       .createQueryBuilder('intervention')
-      .leftJoinAndSelect('intervention.intervenants', 'intervenants')
       .leftJoinAndSelect('intervention.createdBy', 'createdBy')
       .leftJoinAndSelect('intervention.updatedBy', 'updatedBy');
 
@@ -144,8 +136,13 @@ export class InterventionService {
 
     // Pagination et tri
     const skip = (page - 1) * limit;
+    
+    // Validate sortBy field to prevent errors
+    const validSortFields = ['createdAt', 'updatedAt', 'dateRef', 'titre', 'centrale', 'equipement'];
+    const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    
     queryBuilder = queryBuilder
-      .orderBy(`intervention.${sortBy}`, sortOrder)
+      .orderBy(`intervention.${safeSortBy}`, sortOrder)
       .skip(skip)
       .take(limit);
 
@@ -158,7 +155,6 @@ export class InterventionService {
   async updateIntervention(
     id: string,
     data: Partial<Intervention>,
-    intervenants: Partial<Intervenant>[] | undefined,
     userId: string
   ): Promise<Intervention> {
     const intervention = await this.getInterventionById(id);
@@ -172,22 +168,8 @@ export class InterventionService {
 
     await this.interventionRepository.save(intervention);
 
-    // Gérer les intervenants si fournis
-    if (intervenants !== undefined) {
-      // Supprimer les anciens intervenants
-      await this.intervenantRepository.delete({ interventionId: id });
-
-      // Créer les nouveaux
-      if (intervenants.length > 0) {
-        const intervenantsToCreate = intervenants.map((int) =>
-          this.intervenantRepository.create({
-            ...int,
-            interventionId: id,
-          })
-        );
-        await this.intervenantRepository.save(intervenantsToCreate);
-      }
-    }
+    // Intervenant data is updated directly in the intervention record
+    // No junction table management needed with simplified schema
 
     // Log l'action
     await this.auditService.log({

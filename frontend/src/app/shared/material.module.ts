@@ -25,6 +25,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 const materialModules = [
   MatButtonModule,
@@ -53,6 +54,7 @@ const materialModules = [
   MatSlideToggleModule,
   MatProgressBarModule,
   MatBadgeModule,
+  MatButtonToggleModule,
 ];
 
 @NgModule({
