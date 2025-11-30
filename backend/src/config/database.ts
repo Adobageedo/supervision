@@ -24,6 +24,7 @@ console.log('🔍 [Database Config]', {
   host: dbConfig.host,
   port: dbConfig.port,
   username: dbConfig.username,
+  password: dbConfig.password,
   database: dbConfig.database,
   NODE_ENV: process.env.NODE_ENV,
 });

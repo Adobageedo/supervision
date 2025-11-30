@@ -60,7 +60,6 @@ services:
       - /app/node_modules
     networks:
       - supervision-network
-    command: npm start
 
 volumes:
   postgres-data:
