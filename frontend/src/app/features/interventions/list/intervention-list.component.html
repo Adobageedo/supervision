@@ -6,6 +6,11 @@
     </button>
     <span>📋 Liste des Interventions</span>
     <span class="spacer"></span>
+    
+    <button mat-icon-button (click)="filterSidebar.open()" aria-label="Filtres">
+      <mat-icon>filter_list</mat-icon>
+    </button>
+    
     <span class="total-count">{{ dataSource.data.length }} intervention(s)</span>
   </mat-toolbar>
 
@@ -430,7 +435,10 @@
           showFirstLastButtons
           class="paginator">
         </mat-paginator>
-      </mat-card-content>
-    </mat-card>
-  </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Filter Sidebar -->
+<app-filter-sidebar #filterSidebar></app-filter-sidebar>
 </div>

@@ -12,6 +12,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Intervention, InterventionFilters } from '../../../core/models/intervention.model';
 import { PredefinedValuesMap, PredefinedType } from '../../../core/models/predefined.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FilterService, FilterState } from '../../../core/services/filter.service';
+import { FilterSidebarComponent } from '../../../shared/components/filter-sidebar/filter-sidebar.component';
 
 interface ColumnFilter {
   field: string;
@@ -24,11 +26,15 @@ interface ColumnFilter {
 @Component({
   selector: 'app-intervention-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, FilterSidebarComponent],
   templateUrl: './intervention-list.component.html',
   styleUrls: ['./intervention-list.component.scss']
 })
 export class InterventionListComponent implements OnInit {
+  @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
+  
+  private currentFilters!: FilterState;
+  
   displayedColumns = [
     'titre', 
     'dateDebut', 
@@ -79,12 +85,17 @@ export class InterventionListComponent implements OnInit {
     private predefinedService: PredefinedService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    public router: Router
+    public router: Router,
+    private filterService: FilterService
   ) {}
 
   ngOnInit(): void {
     this.canWrite = this.authService.canWrite();
     this.loadPredefinedValues();
+    this.filterService.getFilters().subscribe(filters => {
+      this.currentFilters = filters;
+      this.applyGlobalFilters();
+    });
     this.loadInterventions();
   }
 
@@ -113,10 +124,11 @@ export class InterventionListComponent implements OnInit {
             console.log('🔍 [LIST] hasPerteCommunication:', this.allInterventions[0].hasPerteCommunication);
           }
           
-          this.dataSource.data = this.allInterventions;
-          
           // Assign colors to centrales
           this.assignCentraleColors();
+          
+          // Apply global filters
+          this.applyGlobalFilters();
           
           // Setup table features
           setTimeout(() => {
@@ -323,5 +335,33 @@ export class InterventionListComponent implements OnInit {
     }
     
     return [];
+  }
+  
+  private applyGlobalFilters(): void {
+    if (!this.allInterventions) return;
+
+    let data = [...this.allInterventions];
+
+    if (this.currentFilters) {
+      const { startDate, endDate, centrales, equipements } = this.currentFilters;
+
+      if (startDate && endDate) {
+        data = data.filter(i => {
+          const ref = i.dateRef ? new Date(i.dateRef) : (i.debutInter ? new Date(i.debutInter) : null);
+          if (!ref) return true;
+          return ref >= startDate && ref <= endDate;
+        });
+      }
+
+      if (centrales.length > 0) {
+        data = data.filter(i => centrales.includes(i.centrale));
+      }
+
+      if (equipements.length > 0) {
+        data = data.filter(i => equipements.includes(i.equipement));
+      }
+    }
+
+    this.dataSource.data = data;
   }
 }

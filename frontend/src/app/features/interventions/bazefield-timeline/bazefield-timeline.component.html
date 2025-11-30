@@ -6,6 +6,11 @@
     </button>
     <span>Bazefield Timeline</span>
     <span class="spacer"></span>
+    
+    <button mat-icon-button (click)="filterSidebar.open()" aria-label="Filtres">
+      <mat-icon>filter_list</mat-icon>
+    </button>
+    
     <span class="granularity-info">
       {{ displayConfig?.granularity === 'minute' ? 'Vue par 15 minutes' : 
          displayConfig?.granularity === 'hour' ? 'Vue horaire' : 
@@ -17,26 +22,6 @@
   <!-- Controls -->
   <div class="controls-bar">
     <div class="time-controls">
-      <!-- Time Range Buttons -->
-      <mat-button-toggle-group [value]="timeRange" (valueChange)="changeTimeRange($event)">
-        <mat-button-toggle value="last7days">
-          7 derniers jours
-        </mat-button-toggle>
-        <mat-button-toggle value="last30days">
-          30 derniers jours
-        </mat-button-toggle>
-        <mat-button-toggle value="currentMonth">
-          Mois en cours
-        </mat-button-toggle>
-        <mat-button-toggle value="previousMonth">
-          Mois précédent
-        </mat-button-toggle>
-        <mat-button-toggle value="custom">
-          <mat-icon>date_range</mat-icon>
-          Personnalisé
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-
       <span class="date-label">{{ getTimeRangeLabel() }}</span>
       
       <!-- Zoom Controls -->
@@ -53,61 +38,8 @@
         </button>
       </div>
     </div>
-
-    <div class="filter-controls">
-      <!-- Centrale Filter -->
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Centrales</mat-label>
-        <mat-select [(ngModel)]="selectedCentrales" multiple (selectionChange)="onCentraleSelectionChange()">
-          @for (centrale of filteredCentrales; track centrale) {
-            <mat-option [value]="centrale">{{ centrale }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <!-- Equipement Filter -->
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Équipements</mat-label>
-        <mat-select [(ngModel)]="selectedEquipements" multiple (selectionChange)="onEquipementSelectionChange()">
-          @for (equipement of filteredEquipements; track equipement) {
-            <mat-option [value]="equipement">{{ equipement }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
   </div>
 
-  <!-- Custom Date Picker -->
-  @if (showCustomDatePicker) {
-    <mat-card class="custom-date-picker">
-      <mat-card-content>
-        <div class="date-picker-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Date de début</mat-label>
-            <input matInput [matDatepicker]="startPicker" [formControl]="customStartDate">
-            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Date de fin</mat-label>
-            <input matInput [matDatepicker]="endPicker" [formControl]="customEndDate">
-            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
-          </mat-form-field>
-
-          <button mat-raised-button color="primary" (click)="applyCustomDateRange()">
-            <mat-icon>check</mat-icon>
-            Appliquer
-          </button>
-          <button mat-stroked-button (click)="showCustomDatePicker = false">
-            <mat-icon>close</mat-icon>
-            Annuler
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
 
   <!-- Legend -->
   <mat-card class="legend-card">
@@ -207,4 +139,7 @@
       }
     </div>
   </div>
+  
+  <!-- Filter Sidebar -->
+  <app-filter-sidebar #filterSidebar></app-filter-sidebar>
 </div>

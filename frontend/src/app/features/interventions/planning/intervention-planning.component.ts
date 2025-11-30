@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../../shared/material.module';
 import { InterventionService } from '../../../core/services/intervention.service';
 import { Intervention } from '../../../core/models/intervention.model';
 import { Router } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FilterService, FilterState } from '../../../core/services/filter.service';
+import { FilterSidebarComponent } from '../../../shared/components/filter-sidebar/filter-sidebar.component';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -25,12 +27,15 @@ interface FilterColumn {
 @Component({
   selector: 'app-intervention-planning',
   standalone: true,
-  imports: [CommonModule, MaterialModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, MaterialModule, FormsModule, ReactiveFormsModule, FilterSidebarComponent],
   templateUrl: './intervention-planning.component.html',
   styleUrls: ['./intervention-planning.component.scss']
 })
 export class InterventionPlanningComponent implements OnInit {
+  @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
+  
   viewMode: ViewMode = 'week';
+  private currentFilters!: FilterState;
   currentDate = new Date();
   interventions: Intervention[] = [];
   calendarEvents: CalendarEvent[] = [];
@@ -75,11 +80,16 @@ export class InterventionPlanningComponent implements OnInit {
 
   constructor(
     private interventionService: InterventionService,
-    private router: Router
+    public router: Router,
+    private filterService: FilterService
   ) {}
 
   ngOnInit(): void {
-    this.updateDateRange();
+    this.filterService.getFilters().subscribe(filters => {
+      this.currentFilters = filters;
+      this.updateDateRangeFromFilters(filters);
+      this.updateCalendarEvents();
+    });
     this.loadInterventions();
   }
 
@@ -145,7 +155,23 @@ export class InterventionPlanningComponent implements OnInit {
         const endDate = intervention.finInter ? new Date(intervention.finInter) : startDate;
         
         // Check if intervention overlaps with current view
-        return startDate <= this.endDate && endDate >= this.startDate;
+        if (!(startDate <= this.endDate && endDate >= this.startDate)) {
+          return false;
+        }
+        
+        // Apply global centrale/equipement filters
+        if (this.currentFilters) {
+          if (this.currentFilters.centrales.length > 0 &&
+              !this.currentFilters.centrales.includes(intervention.centrale)) {
+            return false;
+          }
+          if (this.currentFilters.equipements.length > 0 &&
+              !this.currentFilters.equipements.includes(intervention.equipement)) {
+            return false;
+          }
+        }
+        
+        return true;
       })
       .map((intervention, index) => ({
         intervention,
@@ -354,5 +380,48 @@ export class InterventionPlanningComponent implements OnInit {
 
   onEquipementSelectionChange(): void {
     this.updateCalendarEvents();
+  }
+  
+  private updateDateRangeFromFilters(filters: FilterState): void {
+    if (filters.startDate && filters.endDate) {
+      this.startDate = new Date(filters.startDate);
+      this.endDate = new Date(filters.endDate);
+    } else {
+      // Fallback to existing viewMode logic
+      this.updateDateRange();
+    }
+  }
+  
+  getFilteredLegendItems(): Array<{key: string; value: string}> {
+    const items: Array<{key: string; value: string}> = [];
+    
+    if (this.colorLegendMode === 'centrale') {
+      // Get unique centrales from filtered events
+      const centrales = new Set(this.calendarEvents.map(e => e.intervention.centrale));
+      centrales.forEach(centrale => {
+        const color = this.centraleColors.get(centrale);
+        if (color) {
+          items.push({ key: centrale, value: color });
+        }
+      });
+    } else {
+      // Get unique equipements from filtered events with their centrale
+      const equipementMap = new Map<string, string>(); // equipement -> centrale
+      this.calendarEvents.forEach(e => {
+        const key = `${e.intervention.centrale} - ${e.intervention.equipement}`;
+        if (!equipementMap.has(key)) {
+          equipementMap.set(key, e.intervention.equipement);
+        }
+      });
+      
+      equipementMap.forEach((equipement, key) => {
+        const color = this.equipementColors.get(equipement);
+        if (color) {
+          items.push({ key: key, value: color });
+        }
+      });
+    }
+    
+    return items.sort((a, b) => a.key.localeCompare(b.key));
   }
 }

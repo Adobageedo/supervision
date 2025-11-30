@@ -100,6 +100,20 @@
     height: 20px;
     border-radius: 4px;
   }
+  
+  .no-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #57606a;
+    font-style: italic;
+    
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
 }
 
 .column-filter-menu {

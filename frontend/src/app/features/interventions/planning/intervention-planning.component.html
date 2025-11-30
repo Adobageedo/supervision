@@ -1,10 +1,15 @@
 <div class="planning-container">
   <!-- Toolbar -->
   <mat-toolbar color="primary" class="planning-toolbar">
-    <button mat-icon-button routerLink="/interventions">
+    <button mat-icon-button (click)="router.navigate(['/interventions'])">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span>Planning des Interventions</span>
+    <span class="spacer"></span>
+    
+    <button mat-icon-button (click)="filterSidebar.open()" aria-label="Filtres">
+      <mat-icon>filter_list</mat-icon>
+    </button>
   </mat-toolbar>
 
   <!-- Controls -->
@@ -46,26 +51,6 @@
         <mat-icon>palette</mat-icon>
         Couleur par {{ colorLegendMode === 'centrale' ? 'Équipement' : 'Centrale' }}
       </button>
-
-      <!-- Centrale Filter -->
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Centrales</mat-label>
-        <mat-select [(ngModel)]="selectedCentrales" multiple (selectionChange)="onCentraleSelectionChange()">
-          @for (centrale of filteredCentrales; track centrale) {
-            <mat-option [value]="centrale">{{ centrale }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <!-- Equipement Filter -->
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Équipements</mat-label>
-        <mat-select [(ngModel)]="selectedEquipements" multiple (selectionChange)="onEquipementSelectionChange()">
-          @for (equipement of filteredEquipements; track equipement) {
-            <mat-option [value]="equipement">{{ equipement }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
     </div>
   </div>
 
@@ -77,20 +62,17 @@
         <span>Légende - {{ colorLegendMode === 'centrale' ? 'Centrales' : 'Équipements' }}</span>
       </div>
       <div class="legend-items">
-        @if (colorLegendMode === 'centrale') {
-          @for (entry of centraleColors | keyvalue; track entry.key) {
-            <div class="legend-item">
-              <div class="legend-color" [style.background-color]="entry.value"></div>
-              <span>{{ entry.key }}</span>
-            </div>
-          }
-        } @else {
-          @for (entry of equipementColors | keyvalue; track entry.key) {
-            <div class="legend-item">
-              <div class="legend-color" [style.background-color]="entry.value"></div>
-              <span>{{ entry.key }}</span>
-            </div>
-          }
+        @for (item of getFilteredLegendItems(); track item.key) {
+          <div class="legend-item">
+            <div class="legend-color" [style.background-color]="item.value"></div>
+            <span>{{ item.key }}</span>
+          </div>
+        }
+        @if (getFilteredLegendItems().length === 0) {
+          <div class="no-legend">
+            <mat-icon>info</mat-icon>
+            <span>Aucune donnée à afficher</span>
+          </div>
         }
       </div>
     </mat-card-content>
@@ -205,4 +187,7 @@
       </div>
     }
   </div>
+  
+  <!-- Filter Sidebar -->
+  <app-filter-sidebar #filterSidebar></app-filter-sidebar>
 </div>

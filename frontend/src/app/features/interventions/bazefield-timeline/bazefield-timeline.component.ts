@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../../shared/material.module';
 import { InterventionService } from '../../../core/services/intervention.service';
@@ -7,6 +7,8 @@ import { Intervention } from '../../../core/models/intervention.model';
 import { Router } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { FilterService, FilterState } from '../../../core/services/filter.service';
+import { FilterSidebarComponent } from '../../../shared/components/filter-sidebar/filter-sidebar.component';
 
 type TimeRange = 'last7days' | 'last30days' | 'currentMonth' | 'previousMonth' | 'custom';
 type TimeGranularity = 'minute' | 'hour' | 'day' | 'month';
@@ -46,11 +48,13 @@ interface DateDisplayConfig {
 @Component({
   selector: 'app-bazefield-timeline',
   standalone: true,
-  imports: [CommonModule, MaterialModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, MaterialModule, FormsModule, ReactiveFormsModule, FilterSidebarComponent],
   templateUrl: './bazefield-timeline.component.html',
   styleUrls: ['./bazefield-timeline.component.scss']
 })
 export class BazefieldTimelineComponent implements OnInit {
+  @ViewChild(FilterSidebarComponent) filterSidebar!: FilterSidebarComponent;
+  
   timeRange: TimeRange = 'last7days';
   startDate!: Date;
   endDate!: Date;
@@ -83,12 +87,15 @@ export class BazefieldTimelineComponent implements OnInit {
   constructor(
     private interventionService: InterventionService,
     private predefinedService: PredefinedService,
-    private router: Router
+    private router: Router,
+    private filterService: FilterService
   ) {}
 
   ngOnInit(): void {
+    this.filterService.getFilters().subscribe(filters => {
+      this.applyFilterState(filters);
+    });
     this.loadInterventions();
-    this.updateDateRange();
   }
   
   zoomIn(): void {
@@ -358,7 +365,7 @@ export class BazefieldTimelineComponent implements OnInit {
   loadInterventions(): void {
     // Load both interventions and predefined values
     forkJoin({
-      interventions: this.interventionService.getInterventions({ page: 1, limit: 10000 }),
+      interventions: this.interventionService.getInterventions({ page: 1, limit: 1000 }),
       predefined: this.predefinedService.getAllValues()
     }).subscribe({
       next: ({ interventions, predefined }) => {
@@ -398,6 +405,32 @@ export class BazefieldTimelineComponent implements OnInit {
             this.allEquipements.set(centrale, eqs.sort());
           });
         }
+        
+        // ALSO extract centrales/equipements from actual intervention data
+        // This ensures we show rows even if they're not in predefined values
+        this.interventions.forEach(intervention => {
+          const centrale = intervention.centrale;
+          const equipement = intervention.equipement;
+          
+          // Add centrale if not already present
+          if (!this.allCentrales.includes(centrale)) {
+            this.allCentrales.push(centrale);
+          }
+          
+          // Add equipement to centrale mapping
+          if (!this.allEquipements.has(centrale)) {
+            this.allEquipements.set(centrale, []);
+          }
+          if (!this.allEquipements.get(centrale)!.includes(equipement)) {
+            this.allEquipements.get(centrale)!.push(equipement);
+          }
+        });
+        
+        // Sort everything
+        this.allCentrales.sort();
+        this.allEquipements.forEach((eqs, centrale) => {
+          this.allEquipements.set(centrale, eqs.sort());
+        });
         
         this.updateFilteredOptions();
         this.buildTimeline();
@@ -803,5 +836,28 @@ export class BazefieldTimelineComponent implements OnInit {
 
   backToInterventions(): void {
     this.router.navigate(['/interventions']);
+  }
+  
+  private applyFilterState(filters: FilterState): void {
+    // Date range from shared filters
+    if (filters.startDate && filters.endDate) {
+      this.startDate = new Date(filters.startDate);
+      this.endDate = new Date(filters.endDate);
+    } else {
+      // Fallback to existing logic if anything is missing
+      this.timeRange = filters.timeRange;
+      this.updateDateRange();
+    }
+
+    // Time range + centrale / équipement from shared filters
+    this.timeRange = filters.timeRange;
+    this.selectedCentrales = [...filters.centrales];
+    this.selectedEquipements = [...filters.equipements];
+
+    // Rebuild headers + timeline
+    this.determineDisplayConfig();
+    this.generateTimeSlots();
+    this.generateGroupedHeaders();
+    this.buildTimeline();
   }
 }
