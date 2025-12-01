@@ -7,49 +7,24 @@ import { UserRole } from '../entities/User';
 export class AuthController {
   private authService = new AuthService();
 
-  register = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-      const { email, password, firstName, lastName, role } = req.body;
-
-      const result = await this.authService.register(
-        email,
-        password,
-        firstName,
-        lastName,
-        role || UserRole.READ
-      );
-
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
-        data: result,
-      });
-    }
-  );
-
+  // Firebase login - receives Firebase ID token and returns user data
   login = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const { email, password } = req.body;
+      const { idToken } = req.body;
 
-      const result = await this.authService.login(email, password);
+      if (!idToken) {
+        return res.status(400).json({
+          success: false,
+          message: 'Firebase ID token is required',
+        });
+      }
+
+      const result = await this.authService.login(idToken);
 
       res.json({
         success: true,
         message: 'Login successful',
         data: result,
-      });
-    }
-  );
-
-  refreshToken = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-      const { refreshToken } = req.body;
-
-      const accessToken = await this.authService.refreshAccessToken(refreshToken);
-
-      res.json({
-        success: true,
-        data: { accessToken },
       });
     }
   );

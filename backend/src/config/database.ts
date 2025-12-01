@@ -12,7 +12,7 @@ dotenv.config();
 const dbConfig = {
   type: 'postgres' as const,
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '4201', 10),
+  port: parseInt(process.env.DB_PORT || '5432', 10),
   username: process.env.DB_USER || 'supervision_user',
   password: process.env.DB_PASSWORD || 'supervision_password',
   database: process.env.DB_NAME || 'supervision_maintenance',
@@ -29,9 +29,13 @@ console.log('🔍 [Database Config]', {
   NODE_ENV: process.env.NODE_ENV,
 });
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const AppDataSource = new DataSource({
   ...dbConfig,
   entities: [User, Intervention, Intervenant, PredefinedValue, AuditLog, Company],
-  migrations: ['src/database/migrations/**/*.ts', 'src/migrations/**/*.ts'],
+  migrations: isProduction
+    ? ['dist/database/migrations/**/*.js', 'dist/migrations/**/*.js']
+    : ['src/database/migrations/**/*.ts', 'src/migrations/**/*.ts'],
   subscribers: [],
 });

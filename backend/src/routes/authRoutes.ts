@@ -9,32 +9,15 @@ import { UserRole } from '../entities/User';
 const router = Router();
 const authController = new AuthController();
 
-// Validation schemas
-const registerValidation = [
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters'),
-  body('firstName').notEmpty().withMessage('First name is required'),
-  body('lastName').notEmpty().withMessage('Last name is required'),
-  validateRequest,
-];
-
+// Validation schemas for Firebase auth
 const loginValidation = [
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required'),
+  body('idToken').notEmpty().withMessage('Firebase ID token is required'),
   validateRequest,
 ];
 
-const refreshTokenValidation = [
-  body('refreshToken').notEmpty().withMessage('Refresh token is required'),
-  validateRequest,
-];
-
-// Routes publiques
-router.post('/register', authLimiter, registerValidation, authController.register);
+// Routes publiques - Firebase authentication
+// Login receives Firebase ID token and returns user data from our DB
 router.post('/login', authLimiter, loginValidation, authController.login);
-router.post('/refresh', refreshTokenValidation, authController.refreshToken);
 
 // Routes protégées
 router.post('/logout', authenticateToken, authController.logout);

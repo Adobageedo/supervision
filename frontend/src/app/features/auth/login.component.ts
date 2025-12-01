@@ -24,7 +24,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <mat-form-field class="full-width" appearance="outline">
               <mat-label>Email</mat-label>
-              <input matInput type="email" formControlName="email" placeholder="admin@supervision.com">
+              <input matInput type="email" formControlName="email" placeholder="votre@email.com">
               <mat-icon matPrefix>email</mat-icon>
               @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
                 <mat-error>L'email est requis</mat-error>
@@ -44,10 +44,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
               @if (loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
                 <mat-error>Le mot de passe est requis</mat-error>
               }
+              @if (loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched) {
+                <mat-error>Le mot de passe doit contenir au moins 6 caractères</mat-error>
+              }
             </mat-form-field>
 
             @if (errorMessage) {
-              <mat-error class="error-message">{{ errorMessage }}</mat-error>
+              <div class="error-message">{{ errorMessage }}</div>
             }
 
             <button mat-raised-button color="primary" type="submit" 
@@ -60,6 +63,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
               }
             </button>
           </form>
+
+          <div class="register-link">
+            <p>Pas encore de compte ? <a (click)="toggleMode()">Créer un compte</a></p>
+          </div>
         </mat-card-content>
 
         <mat-card-footer>
@@ -115,21 +122,33 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       background-color: #ffebee;
       border-radius: 4px;
       text-align: center;
+      color: #c62828;
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .register-link a {
+      color: #1976d2;
+      cursor: pointer;
+      text-decoration: underline;
     }
 
     mat-card-footer {
       margin-top: 20px;
     }
 
-    .demo-info {
+    .info-message {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 12px;
-      background-color: #e3f2fd;
+      background-color: #e8f5e9;
       border-radius: 4px;
       font-size: 14px;
-      color: #1976d2;
+      color: #2e7d32;
     }
 
     mat-spinner {
@@ -142,6 +161,7 @@ export class LoginComponent {
   hidePassword = true;
   loading = false;
   errorMessage = '';
+  isRegisterMode = false;
 
   constructor(
     private fb: FormBuilder,
@@ -151,8 +171,13 @@ export class LoginComponent {
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  toggleMode(): void {
+    this.isRegisterMode = !this.isRegisterMode;
+    this.errorMessage = '';
   }
 
   onSubmit(): void {
@@ -160,17 +185,41 @@ export class LoginComponent {
       this.loading = true;
       this.errorMessage = '';
 
-      this.authService.login(this.loginForm.value).subscribe({
+      const { email, password } = this.loginForm.value;
+
+      this.authService.login(email, password).subscribe({
         next: (response) => {
+          this.loading = false;
           this.snackBar.open('Connexion réussie !', 'Fermer', { duration: 3000 });
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.loading = false;
-          this.errorMessage = error.error?.message || 'Erreur de connexion. Vérifiez vos identifiants.';
+          this.errorMessage = this.getFirebaseErrorMessage(error);
           this.snackBar.open(this.errorMessage, 'Fermer', { duration: 5000 });
         }
       });
+    }
+  }
+
+  private getFirebaseErrorMessage(error: any): string {
+    const errorCode = error?.code || '';
+    
+    switch (errorCode) {
+      case 'auth/user-not-found':
+        return 'Aucun compte trouvé avec cet email.';
+      case 'auth/wrong-password':
+        return 'Mot de passe incorrect.';
+      case 'auth/invalid-email':
+        return 'Email invalide.';
+      case 'auth/user-disabled':
+        return 'Ce compte a été désactivé.';
+      case 'auth/too-many-requests':
+        return 'Trop de tentatives. Veuillez réessayer plus tard.';
+      case 'auth/invalid-credential':
+        return 'Identifiants invalides. Vérifiez votre email et mot de passe.';
+      default:
+        return error?.message || 'Erreur de connexion. Vérifiez vos identifiants.';
     }
   }
 }

@@ -50,6 +50,10 @@ export class User {
   @Column({ type: 'text', nullable: true, select: false })
   refreshToken?: string | null;
 
+  @Column({ type: 'varchar', length: 128, nullable: true, unique: true })
+  @Index()
+  firebaseUid?: string | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 
