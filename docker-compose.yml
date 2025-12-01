@@ -37,7 +37,10 @@ services:
       context: .
       dockerfile: ./frontend/Dockerfile.prod
     container_name: supervision-frontend
-    restart: unless-stopped
+    restart: "no"  # frontend container does not need to run
+    volumes:
+      - frontend-build:/app/dist/frontend  # store the build output
+
     networks:
       - supervision-network
 
@@ -51,6 +54,8 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certs:/etc/nginx/certs:ro
+      - frontend-build:/usr/share/nginx/html:ro  # mount build output
+
     depends_on:
       - frontend
       - backend
@@ -59,6 +64,7 @@ services:
 
 volumes:
   postgres-data:
+  frontend-build:
 
 networks:
   supervision-network:

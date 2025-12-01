@@ -4,5 +4,3 @@ COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
 RUN npm run build -- frontend --configuration production
-FROM scratch AS prod
-COPY --from=build /app/dist/frontend /app/dist/frontend
