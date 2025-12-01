@@ -21,7 +21,7 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+    origin: 'https://chardouin.fr', // only allow this domain
     credentials: true,
   })
 );
@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logger les requêtes
 app.use(requestLogger);
-
+app.set('trust proxy', 1);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
