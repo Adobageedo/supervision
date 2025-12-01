@@ -15,6 +15,34 @@ export const authenticateToken = async (
   next: NextFunction
 ) => {
   try {
+    // Check if authentication is required
+    const requireAuth = process.env.REQUIRE_AUTH !== 'false';
+
+    if (!requireAuth) {
+      // No auth mode - create a mock admin user
+      const userRepository = AppDataSource.getRepository(User);
+      let user = await userRepository.findOne({
+        where: { email: 'no-auth@supervision.local' },
+      });
+
+      if (!user) {
+        user = userRepository.create({
+          email: 'no-auth@supervision.local',
+          password: 'no-auth',
+          firstName: 'No Auth',
+          lastName: 'Mode',
+          role: UserRole.ADMIN,
+          firebaseUid: null,
+        });
+        await userRepository.save(user);
+        console.log('✅ Created no-auth mode user');
+      }
+
+      req.user = user;
+      return next();
+    }
+
+    // Normal Firebase authentication
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 

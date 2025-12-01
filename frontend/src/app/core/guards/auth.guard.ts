@@ -1,8 +1,14 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 export const authGuard: CanActivateFn = (route, state) => {
+  // If auth is not required, allow access
+  if (!environment.requireAuth) {
+    return true;
+  }
+
   const authService = inject(AuthService);
   const router = inject(Router);
 
