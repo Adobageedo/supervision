@@ -13,7 +13,7 @@ import routes from './routes';
 dotenv.config();
 
 const app: Application = express();
-const PORT = process.env.PORT || '4202';
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4202;
 
 // Middleware de sécurité
 app.use(helmet());
