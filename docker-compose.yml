@@ -11,6 +11,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - supervision-network
+    ports:
+    - "5432:5432"  # Expose PostgreSQL port
 
   backend:
     build:

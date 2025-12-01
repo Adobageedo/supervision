@@ -41,8 +41,8 @@ load_dotenv()
 
 # Database configuration (support both DATABASE_* and legacy DB_* variable names)
 DB_CONFIG = {
-    'host': os.getenv('DATABASE_HOST') or os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DATABASE_PORT') or os.getenv('DB_PORT', '4201')),
+    'host': 'localhost',#os.getenv('DATABASE_HOST') or os.getenv('DB_HOST', 'localhost'),
+    'port': '5432',#int(os.getenv('DATABASE_PORT') or os.getenv('DB_PORT', '4201')),
     'database': os.getenv('DATABASE_NAME') or os.getenv('DB_NAME', 'supervision_maintenance'),
     'user': os.getenv('DATABASE_USER') or os.getenv('DB_USER', 'supervision_user'),
     'password': os.getenv('DATABASE_PASSWORD') or os.getenv('DB_PASSWORD', 'supervision_password')
