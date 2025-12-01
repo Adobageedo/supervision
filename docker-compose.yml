@@ -40,6 +40,7 @@ services:
     restart: unless-stopped
     networks:
       - supervision-network
+
   nginx:
     image: nginx:latest
     container_name: supervision-nginx
@@ -50,13 +51,11 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certs:/etc/nginx/certs:ro
-
     depends_on:
       - frontend
       - backend
     networks:
       - supervision-network
-
 
 volumes:
   postgres-data:
