@@ -1,19 +1,21 @@
 services:
+  # PostgreSQL Database
   postgres:
     image: postgres:14-alpine
     container_name: supervision-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: supervision_maintenance
+      POSTGRES_USER: supervision_user
+      POSTGRES_PASSWORD: supervision_password
+    ports:
+      - "4201:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - supervision-network
-    ports:
-    - "5432:5432"  # Expose PostgreSQL port
 
+  # Backend API
   backend:
     build:
       context: ./backend
@@ -21,52 +23,46 @@ services:
     container_name: supervision-backend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: ${BACKEND_PORT}
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: supervision_maintenance
+      DB_USER: supervision_user
+      DB_PASSWORD: supervision_password
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 4202
+    ports:
+      - "4202:4202"
     depends_on:
       - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     networks:
       - supervision-network
+    command: npm run dev
 
+  # Frontend Angular
   frontend:
     build:
-      context: .
-      dockerfile: ./frontend/Dockerfile.prod
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: supervision-frontend
-    restart: "no"  # frontend container does not need to run
-    volumes:
-      - frontend-build:/app/dist/frontend  # store the build output
-
-    networks:
-      - supervision-network
-
-  nginx:
-    image: nginx:latest
-    container_name: supervision-nginx
     restart: unless-stopped
+    environment:
+      - NODE_ENV=development
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-      - frontend-build:/usr/share/nginx/html:ro  # mount build output
-
+      - "4200:4200"
     depends_on:
-      - frontend
       - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     networks:
       - supervision-network
 
 volumes:
   postgres-data:
-  frontend-build:
 
 networks:
   supervision-network:
