@@ -34,8 +34,24 @@ export const authenticateToken = async (
           role: UserRole.ADMIN,
           firebaseUid: null,
         });
-        await userRepository.save(user);
-        console.log('✅ Created no-auth mode user');
+
+        try {
+          await userRepository.save(user);
+          console.log('✅ Created no-auth mode user');
+        } catch (err: any) {
+          // Handle race condition where another request created the user concurrently
+          if (err && err.code === '23505') {
+            user = await userRepository.findOne({
+              where: { email: 'no-auth@supervision.local' },
+            });
+          } else {
+            throw err;
+          }
+        }
+      }
+
+      if (!user) {
+        throw new AppError('Failed to initialize no-auth user', 500);
       }
 
       req.user = user;
