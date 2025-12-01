@@ -9,14 +9,15 @@ export class AuthController {
 
   // Firebase login - receives Firebase ID token and returns user data
   login = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { idToken } = req.body;
 
       if (!idToken) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: 'Firebase ID token is required',
         });
+        return;
       }
 
       const result = await this.authService.login(idToken);
@@ -26,6 +27,8 @@ export class AuthController {
         message: 'Login successful',
         data: result,
       });
+
+      return;
     }
   );
 

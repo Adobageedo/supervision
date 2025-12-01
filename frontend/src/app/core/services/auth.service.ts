@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, from, switchMap, tap, of } from 'rxjs';
 import { 
@@ -17,20 +17,17 @@ import { User, ApiResponse } from '../models/user.model';
   providedIn: 'root'
 })
 export class AuthService {
-  private auth = inject(Auth);
-  private http = inject(HttpClient);
-  
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private firebaseUserSubject = new BehaviorSubject<FirebaseUser | null>(null);
   
   public currentUser$ = this.currentUserSubject.asObservable();
   public firebaseUser$ = this.firebaseUserSubject.asObservable();
 
-  constructor() {
+  constructor(private auth: Auth, private http: HttpClient) {
     this.loadStoredUser();
     
     // Listen to Firebase auth state changes
-    onAuthStateChanged(this.auth, async (firebaseUser) => {
+    onAuthStateChanged(this.auth, async (firebaseUser: FirebaseUser | null) => {
       this.firebaseUserSubject.next(firebaseUser);
       
       if (firebaseUser) {
@@ -110,7 +107,7 @@ export class AuthService {
 
   // Get current Firebase ID token (refreshes automatically if expired)
   async getIdToken(): Promise<string | null> {
-    const user = this.auth.currentUser;
+    const user = this.auth.currentUser as FirebaseUser | null;
     if (user) {
       return await user.getIdToken();
     }
@@ -119,7 +116,7 @@ export class AuthService {
 
   // Refresh the ID token and update localStorage
   async refreshToken(): Promise<string | null> {
-    const user = this.auth.currentUser;
+    const user = this.auth.currentUser as FirebaseUser | null;
     if (user) {
       const idToken = await user.getIdToken(true); // Force refresh
       localStorage.setItem('accessToken', idToken);
@@ -166,7 +163,8 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.auth.currentUser;
+    const user = this.auth.currentUser as FirebaseUser | null;
+    return !!user;
   }
 
   getCurrentUser(): User | null {
@@ -174,7 +172,7 @@ export class AuthService {
   }
 
   getFirebaseUser(): FirebaseUser | null {
-    return this.auth.currentUser;
+    return this.auth.currentUser as FirebaseUser | null;
   }
 
   hasRole(roles: string[]): boolean {
