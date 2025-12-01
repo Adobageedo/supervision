@@ -16,15 +16,16 @@ const dbConfig = {
   username: process.env.DB_USER || 'supervision_user',
   password: process.env.DB_PASSWORD || 'supervision_password',
   database: process.env.DB_NAME || 'supervision_maintenance',
-  synchronize: false,  // Disabled - use migrations instead
+  synchronize: false, // Disabled - use migrations instead
   logging: process.env.NODE_ENV === 'development',
 };
 
+// Safe logging (do not print raw password)
 console.log('🔍 [Database Config]', {
   host: dbConfig.host,
   port: dbConfig.port,
   username: dbConfig.username,
-  password: dbConfig.password,
+  password: dbConfig.password ? '***' : undefined,
   database: dbConfig.database,
   NODE_ENV: process.env.NODE_ENV,
 });

@@ -136,10 +136,11 @@ SCHEMA: Dict[str, Dict[str, str]] = {
         'password': 'string',
         'firstName': 'string',
         'lastName': 'string',
-        'role': 'string',  # admin | moderator | user
+        'role': 'string',  # admin | write | read
         'isActive': 'bool',
         'refreshToken': 'string?',
         'lastLogin': 'timestamp?',
+        'firebaseUid': 'string?',
         'createdAt': 'timestamp',
         'updatedAt': 'timestamp',
     },
@@ -626,9 +627,9 @@ def create_sample_csvs():
     
     samples = {
         'users.csv': [
-            ['id', 'email', 'password', 'firstName', 'lastName', 'role', 'isActive', 'refreshToken', 'lastLogin', 'createdAt', 'updatedAt'],
-            ['', 'admin@supervision.com', 'Admin123!', 'Admin', 'User', 'admin', 'true', '', '', '', ''],
-            ['', 'operator@supervision.com', 'Admin123!', 'John', 'Doe', 'user', 'true', '', '', '', '']
+            ['id', 'email', 'password', 'firstName', 'lastName', 'role', 'isActive', 'refreshToken', 'lastLogin', 'firebaseUid', 'createdAt', 'updatedAt'],
+            ['', 'admin@supervision.com', 'Admin123!', 'Admin', 'User', 'admin', 'true', '', '', '', '', ''],
+            ['', 'operator@supervision.com', 'Admin123!', 'John', 'Doe', 'read', 'true', '', '', '', '', '']
         ],
         'predefined_values.csv': [
             ['id', 'type', 'value', 'description', 'nickname', 'equipmentType', 'parentId', 'isActive', 'sortOrder', 'createdAt', 'updatedAt'],

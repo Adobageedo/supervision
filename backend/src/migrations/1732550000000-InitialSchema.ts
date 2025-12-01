@@ -4,11 +4,11 @@ export class InitialSchema1732550000000 implements MigrationInterface {
     name = 'InitialSchema1732550000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // Create enums
-        await queryRunner.query(`CREATE TYPE "public"."user_role_enum" AS ENUM('admin', 'moderator', 'user')`);
+        // Create enums (aligned with UserRole in entities/User.ts)
+        await queryRunner.query(`CREATE TYPE "public"."user_role_enum" AS ENUM('admin', 'write', 'read')`);
         await queryRunner.query(`CREATE TYPE "public"."predefined_value_type_enum" AS ENUM('centrale', 'equipement', 'type_evenement', 'type_dysfonctionnement', 'type_intervenant')`);
 
-        // Create users table
+        // Create users table (aligned with entities/User.ts)
         await queryRunner.query(`
             CREATE TABLE "users" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -16,13 +16,15 @@ export class InitialSchema1732550000000 implements MigrationInterface {
                 "password" character varying(255) NOT NULL,
                 "firstName" character varying(100),
                 "lastName" character varying(100),
-                "role" "public"."user_role_enum" NOT NULL DEFAULT 'user',
+                "role" "public"."user_role_enum" NOT NULL DEFAULT 'read',
                 "isActive" boolean NOT NULL DEFAULT true,
                 "refreshToken" character varying(500),
                 "lastLogin" TIMESTAMP,
+                "firebaseUid" character varying(128),
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
                 CONSTRAINT "UQ_users_email" UNIQUE ("email"),
+                CONSTRAINT "UQ_users_firebaseUid" UNIQUE ("firebaseUid"),
                 CONSTRAINT "PK_users_id" PRIMARY KEY ("id")
             )
         `);

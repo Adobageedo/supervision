@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',
+  apiUrl: 'http://localhost:4202/api',
   requireAuth: false, // Set to false to disable authentication
   firebase: {
     apiKey: 'AIzaSyC_0gsL5LVVfuUPCToWP0jPeSX3ysZ6Adk',
