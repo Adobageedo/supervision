@@ -35,16 +35,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: supervision-frontend
     restart: unless-stopped
-    environment:
-      NODE_ENV: production
-    depends_on:
-      - backend
     networks:
       - supervision-network
-
   nginx:
     image: nginx:latest
     container_name: supervision-nginx
