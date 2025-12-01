@@ -1,34 +1,45 @@
 # Dependencies
 node_modules
 npm-debug.log
+package-lock.json
+yarn.lock
 
 # Environment
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
-# Build
+# Build outputs
 dist
 build
 *.log
+logs
 
-# IDE
+# IDE & Editor
 .vscode
 .idea
 *.swp
 *.swo
+*.sublime-*
+.editorconfig
 
 # Tests
 coverage
 .nyc_output
+test
+tests
+*.test.ts
+*.spec.ts
 
 # OS
 .DS_Store
 Thumbs.db
+*.tmp
 
 # Git
 .git
 .gitignore
+.gitattributes
 
 # Documentation
 *.md
@@ -37,3 +48,33 @@ Thumbs.db
 # CI/CD
 .github
 .gitlab-ci.yml
+.circleci
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+!docker-compose.prod.yml
+Dockerfile
+!Dockerfile.prod
+
+# Python (for import scripts)
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv
+env
+
+# Data & Uploads
+csv_data
+uploads
+*.csv
+*.sql
+
+# Nginx
+nginx
+
+# Scripts
+*.sh
+!init-frontend.sh

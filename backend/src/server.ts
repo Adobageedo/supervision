@@ -19,11 +19,25 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4202;
 app.use(helmet());
 
 // CORS
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:4200'];
+
 app.use(
   cors({
-    // origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
-    origin: 'http://localhost',    // allow any origin
-    credentials: true, // do not send cookies/auth headers
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
