@@ -1,4 +1,5 @@
 id,type,value,description,nickname,equipmentType,parentId,isActive,sortOrder,createdAt,updatedAt
+0,centrale,ANNET,ANNET,ANNE,,,true,1,,
 1,centrale,ANNET,ANNET,ANNE,,,true,1,,
 2,centrale,BORGO,BORGO,BORG,,,true,2,,
 3,centrale,BOUSQUET,BOUSQUET,BOUS,,,true,3,,
