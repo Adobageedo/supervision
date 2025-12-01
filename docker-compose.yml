@@ -1,7 +1,4 @@
-version: "3.9"
-
 services:
-  # Postgres DB
   postgres:
     image: postgres:14-alpine
     container_name: supervision-db
@@ -15,7 +12,6 @@ services:
     networks:
       - supervision-network
 
-  # Backend API
   backend:
     build:
       context: ./backend
@@ -36,7 +32,6 @@ services:
     networks:
       - supervision-network
 
-  # Frontend Angular
   frontend:
     build:
       context: ./frontend
@@ -50,37 +45,20 @@ services:
     networks:
       - supervision-network
 
-  # Nginx reverse proxy with Let's Encrypt
   nginx:
     image: nginx:latest
     container_name: supervision-nginx
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certs:/etc/letsencrypt
     depends_on:
       - frontend
       - backend
     networks:
       - supervision-network
 
-  # Certbot for automatic SSL
-  certbot:
-    image: certbot/certbot
-    container_name: supervision-certbot
-    volumes:
-      - ./nginx/certs:/etc/letsencrypt
-      - ./nginx/conf.d:/etc/nginx/conf.d
-    entrypoint: >
-      sh -c "trap exit TERM; while :; do sleep 12h & wait $${!}; 
-      certbot renew --webroot -w /var/www/certbot; done"
-    depends_on:
-      - nginx
-    networks:
-      - supervision-network
 
 volumes:
   postgres-data:
