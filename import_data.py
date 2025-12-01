@@ -20,6 +20,7 @@ CSV File Requirements:
 
 import csv
 import os
+import time
 import sys
 from datetime import datetime
 from typing import List, Dict, Any, Optional
@@ -609,6 +610,8 @@ class DatabaseImporter:
         for table in IMPORT_ORDER:
             count = self.import_table(table)
             total_imported += count
+            print(f"  Imported {count} rows into {table}, wainting 5s before next table...")
+            time.sleep(5)
         
         print("\n" + "="*60)
         print(f"✅ Import complete! Total rows imported: {total_imported}")
