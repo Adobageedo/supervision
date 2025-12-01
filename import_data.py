@@ -611,7 +611,7 @@ class DatabaseImporter:
         for table in IMPORT_ORDER:
             count = self.import_table(table)
             total_imported += count
-            print(f"  Imported {count} rows into {table}, wainting 5s")
+            print(f"  Imported {count} rows into {table}, wainting 1s")
             time.sleep(1)
         
         print("\n" + "="*60)

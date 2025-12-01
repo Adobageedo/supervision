@@ -72,7 +72,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         <mat-card-footer>
           <p class="demo-info">
             <mat-icon>info</mat-icon>
-            Compte démo: admin@supervision.com / Admin123!
+            Compte démo: admin&#64;supervision.com / Admin123!
           </p>
         </mat-card-footer>
       </mat-card>
