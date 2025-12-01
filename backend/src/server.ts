@@ -22,8 +22,8 @@ app.use(helmet());
 app.use(
   cors({
     // origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
-    origin: '*',    // allow any origin
-    credentials: false, // do not send cookies/auth headers
+    origin: 'http://localhost',    // allow any origin
+    credentials: true, // do not send cookies/auth headers
   })
 );
 
