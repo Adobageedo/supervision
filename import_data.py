@@ -310,12 +310,10 @@ def _to_jsonb(v: Any) -> Optional[str]:
         # store as a string field inside JSON
         return json.dumps({'value': s}, ensure_ascii=False)
 
-def _int_to_uuid(value: Any, namespace: str = 'supervision') -> str:
-    """Convert an integer ID to a deterministic UUID v5."""
+def _int_to_uuid(value: Any, table_name: str = 'default') -> str:
     if value in (None, '', 'null'):
         return None
-    
-    # If already a valid UUID, return as-is
+
     s = str(value).strip()
     if '-' in s:
         try:
@@ -323,10 +321,9 @@ def _int_to_uuid(value: Any, namespace: str = 'supervision') -> str:
             return s
         except Exception:
             pass
-    
-    # Convert integer to UUID using namespace
-    # This ensures same integer always maps to same UUID
-    namespace_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, namespace)
+
+    # Use table_name as namespace to ensure unique UUIDs per table
+    namespace_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, table_name)
     return str(uuid.uuid5(namespace_uuid, str(value)))
 
 
@@ -423,7 +420,7 @@ class DatabaseImporter:
 
             if base == 'uuid':
                 # Convert integer IDs to UUIDs, or validate existing UUIDs
-                v = _int_to_uuid(val) if val not in (None, '', 'null') else (None if nullable else None)
+                v = _int_to_uuid(val, table) if val not in (None, '', 'null') else (None if nullable else None)
             elif base == 'string' or base == 'text':
                 v = None if (val == '' and nullable) else (None if val is None and nullable else str(val) if val is not None else None)
             elif base == 'bool':
