@@ -21,7 +21,7 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: 'https://chardouin.fr', // only allow this domain
+    origin: ['https://chardouin.fr', 'http://localhost:4200','http://localhost'], // multiple allowed domains
     credentials: true,
   })
 );
