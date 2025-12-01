@@ -310,10 +310,12 @@ def _to_jsonb(v: Any) -> Optional[str]:
         # store as a string field inside JSON
         return json.dumps({'value': s}, ensure_ascii=False)
 
-def _int_to_uuid(value: Any, table_name: str = 'default') -> str:
+def _int_to_uuid(value: Any, namespace: str = 'supervision') -> str:
+    """Convert an integer ID to a deterministic UUID v5."""
     if value in (None, '', 'null'):
         return None
-
+    
+    # If already a valid UUID, return as-is
     s = str(value).strip()
     if '-' in s:
         try:
@@ -321,9 +323,10 @@ def _int_to_uuid(value: Any, table_name: str = 'default') -> str:
             return s
         except Exception:
             pass
-
-    # Use table_name as namespace to ensure unique UUIDs per table
-    namespace_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, table_name)
+    
+    # Convert integer to UUID using namespace
+    # This ensures same integer always maps to same UUID
+    namespace_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, namespace)
     return str(uuid.uuid5(namespace_uuid, str(value)))
 
 
@@ -420,7 +423,7 @@ class DatabaseImporter:
 
             if base == 'uuid':
                 # Convert integer IDs to UUIDs, or validate existing UUIDs
-                v = _int_to_uuid(val, table) if val not in (None, '', 'null') else (None if nullable else None)
+                v = _int_to_uuid(val) if val not in (None, '', 'null') else (None if nullable else None)
             elif base == 'string' or base == 'text':
                 v = None if (val == '' and nullable) else (None if val is None and nullable else str(val) if val is not None else None)
             elif base == 'bool':
@@ -607,7 +610,7 @@ class DatabaseImporter:
         for table in IMPORT_ORDER:
             count = self.import_table(table)
             total_imported += count
-            print(f"  Imported {count} rows into {table}, wainting 5s before next table...")
+            print(f"  Imported {count} rows into {table}, wainting 5s")
             time.sleep(5)
         
         print("\n" + "="*60)

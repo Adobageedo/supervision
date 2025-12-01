@@ -1,4 +1,5 @@
 id,name,surname,phone,email,country,companyId,type,isActive,createdAt,updatedAt
+0,Fabrice LE GAL,,,,France,1,,true,,
 1,Fabrice LE GAL,,,,France,1,,true,,
 2,Loic WINKELMAN,,,,France,3,,true,,
 3,Emily ARREND,,,,France,1,,true,,

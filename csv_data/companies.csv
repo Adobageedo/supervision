@@ -1,4 +1,5 @@
 id,name,address,phone,email,website,isActive,createdAt,updatedAt
+0,NOT,,,,,true,,
 1,AKEM,,,,,true,,
 2,AKE,,,,,true,,
 3,AKI,,,,,,,
